@@ -1,0 +1,243 @@
+import React, { useState } from 'react';
+import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldCheck, Tag, Sparkles, CheckCircle2 } from 'lucide-react';
+
+export default function CartDrawer({ 
+  isOpen, 
+  onClose, 
+  cartItems, 
+  onUpdateQuantity, 
+  onRemoveItem,
+  onClearCart
+}) {
+  const [promoCode, setPromoCode] = useState('');
+  const [discount, setDiscount] = useState(0);
+  const [appliedCode, setAppliedCode] = useState('');
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(false);
+
+  if (!isOpen) return null;
+
+  const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const freeShippingThreshold = 499;
+  const shippingFee = subtotal >= freeShippingThreshold || cartItems.length === 0 ? 0 : 40;
+  const discountAmount = Math.round((subtotal * discount) / 100);
+  const total = Math.max(0, subtotal - discountAmount + shippingFee);
+
+  const handleApplyPromo = () => {
+    if (promoCode.toUpperCase() === 'SUPER30') {
+      setDiscount(30);
+      setAppliedCode('SUPER30');
+    } else if (promoCode.toUpperCase() === 'FRUIT20' || promoCode.toUpperCase() === 'KIDSFUN25') {
+      setDiscount(20);
+      setAppliedCode(promoCode.toUpperCase());
+    } else {
+      alert('Invalid Promo Code. Try code: SUPER30 or FRUIT20');
+    }
+  };
+
+  const handleCheckout = () => {
+    setIsCheckingOut(true);
+    setTimeout(() => {
+      setIsCheckingOut(false);
+      setOrderPlaced(true);
+    }, 1500);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex justify-end">
+      <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between overflow-hidden animate-fade-in">
+        
+        {/* Header */}
+        <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-900 text-white flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-bold">
+              <ShoppingBag className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-base font-heading text-white">Your Shopping Cart</h3>
+              <p className="text-[11px] text-emerald-400 font-semibold">{cartItems.length} unique items in cart</p>
+            </div>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {orderPlaced ? (
+          /* Order Confirmation Screen */
+          <div className="p-8 text-center flex-1 flex flex-col items-center justify-center space-y-4">
+            <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shadow-inner animate-bounce">
+              <CheckCircle2 className="w-12 h-12" />
+            </div>
+            <h3 className="text-2xl font-extrabold text-slate-900 font-heading">Order Placed Successfully!</h3>
+            <p className="text-slate-600 text-xs leading-relaxed max-w-xs">
+              Thank you for shopping at Alphonsa Hypermarket! Order #ALPH-{Math.floor(100000 + Math.random() * 900000)} has been processed.
+            </p>
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs w-full text-left font-mono space-y-1">
+              <div>Items Total: ₹{total}</div>
+              <div>Estimated Delivery: Today in 45 Mins</div>
+              <div className="text-emerald-600 font-bold">Status: Packing & Dispatching</div>
+            </div>
+            <button 
+              onClick={() => {
+                onClearCart();
+                setOrderPlaced(false);
+                onClose();
+              }}
+              className="btn-neon w-full py-3 text-xs font-bold"
+            >
+              Continue Shopping
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Free Delivery Meter */}
+            <div className="bg-emerald-50 px-4 py-2.5 border-b border-emerald-200 text-xs">
+              {subtotal >= freeShippingThreshold ? (
+                <div className="text-emerald-800 font-bold flex items-center justify-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-emerald-600" />
+                  <span>🎉 Congratulations! You unlocked FREE Home Delivery!</span>
+                </div>
+              ) : (
+                <div className="text-slate-700 font-medium text-center">
+                  Add <span className="font-bold text-emerald-700">₹{freeShippingThreshold - subtotal}</span> more for FREE Delivery!
+                  <div className="w-full bg-emerald-200 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                    <div 
+                      className="bg-emerald-500 h-full rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(100, (subtotal / freeShippingThreshold) * 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Cart Items List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {cartItems.length === 0 ? (
+                <div className="text-center py-16 text-slate-400 space-y-3">
+                  <ShoppingBag className="w-16 h-16 mx-auto stroke-1 text-slate-300" />
+                  <p className="font-bold text-slate-700 text-sm">Your shopping cart is empty</p>
+                  <p className="text-xs text-slate-400 max-w-xs mx-auto">Explore groceries, cakes, cosmetics and toys to add products to your cart.</p>
+                  <button onClick={onClose} className="btn-neon text-xs py-2 px-5 font-bold mt-2">
+                    Browse Supermarket
+                  </button>
+                </div>
+              ) : (
+                cartItems.map(item => (
+                  <div key={item.id} className="flex gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80 items-center justify-between">
+                    <img src={item.image} alt={item.name} className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0" />
+                    
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-xs text-slate-800 truncate">{item.name}</h4>
+                      <span className="text-[10px] text-slate-400 block mb-1">{item.unit}</span>
+                      <div className="font-extrabold text-sm text-slate-900 font-heading">
+                        ₹{item.price} <span className="text-[10px] text-slate-400 font-normal">x {item.quantity}</span>
+                      </div>
+                    </div>
+
+                    {/* Quantity Adjustment Controls */}
+                    <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-full p-1">
+                      <button 
+                        onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-slate-600 hover:bg-slate-100"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <span className="text-xs font-bold text-slate-800 w-4 text-center">{item.quantity}</span>
+                      <button 
+                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-slate-600 hover:bg-slate-100"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+
+                    <button 
+                      onClick={() => onRemoveItem(item.id)}
+                      className="p-1.5 text-slate-400 hover:text-rose-500 transition"
+                      title="Remove item"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Footer Summary & Checkout */}
+            {cartItems.length > 0 && (
+              <div className="p-4 sm:p-5 border-t border-slate-200 bg-white space-y-3">
+                
+                {/* Promo Code Box */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    placeholder="Enter Code (e.g. SUPER30)"
+                    className="w-full text-xs py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-mono uppercase"
+                  />
+                  <button 
+                    onClick={handleApplyPromo}
+                    className="btn-outline text-xs py-2 px-4 shrink-0"
+                  >
+                    Apply
+                  </button>
+                </div>
+
+                {appliedCode && (
+                  <div className="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-3 py-1 rounded-lg flex justify-between">
+                    <span>Code '{appliedCode}' Applied ({discount}% OFF)</span>
+                    <span>-₹{discountAmount}</span>
+                  </div>
+                )}
+
+                {/* Subtotal Calculations */}
+                <div className="space-y-1 text-xs text-slate-600 font-medium pt-1">
+                  <div className="flex justify-between">
+                    <span>Items Subtotal</span>
+                    <span>₹{subtotal}</span>
+                  </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-emerald-600">
+                      <span>Promo Discount</span>
+                      <span>-₹{discountAmount}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span>Delivery Charges</span>
+                    <span>{shippingFee === 0 ? <span className="text-emerald-600 font-bold">FREE</span> : `₹${shippingFee}`}</span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t border-slate-100 text-sm font-extrabold text-slate-900 font-heading">
+                    <span>Grand Total</span>
+                    <span className="text-emerald-600 text-base">₹{total}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleCheckout}
+                  disabled={isCheckingOut}
+                  className="w-full btn-neon py-3.5 text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30"
+                >
+                  {isCheckingOut ? (
+                    <span>Processing Order...</span>
+                  ) : (
+                    <>
+                      <span>Proceed to Checkout</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+
+              </div>
+            )}
+          </>
+        )}
+
+      </div>
+    </div>
+  );
+}
