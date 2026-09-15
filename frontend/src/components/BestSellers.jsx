@@ -1,10 +1,16 @@
-import React from 'react';
-import { PRODUCTS } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
 import ProductCard from './ProductCard';
 import { Award, Flame } from 'lucide-react';
+import * as api from '../services/api';
 
 export default function BestSellers({ onAddToCart, onToggleWishlist, wishlist, onQuickView }) {
-  const bestsellerItems = PRODUCTS.filter(p => p.isBestseller);
+  const [bestsellerItems, setBestsellerItems] = useState([]);
+
+  useEffect(() => {
+    api.getProducts({ is_bestseller: true, limit: 10 })
+      .then(res => { if (res.success) setBestsellerItems(res.data.products || []); })
+      .catch(() => {});
+  }, []);
 
   return (
     <section className="py-14 bg-white border-b border-slate-100">

@@ -1,13 +1,17 @@
-import React from 'react';
-import { PRODUCTS } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
 import ProductCard from './ProductCard';
 import { Sparkles, ChevronRight, ChevronLeft } from 'lucide-react';
+import * as api from '../services/api';
 
 export default function NewArrivals({ onAddToCart, onToggleWishlist, wishlist, onQuickView }) {
   const scrollRef = React.useRef(null);
-  
-  // Filter new arrival items
-  const newArrivalItems = PRODUCTS.filter(p => p.isNew || ['dresses', 'cosmetics', 'toys', 'watches', 'bags'].includes(p.category));
+  const [newArrivalItems, setNewArrivalItems] = useState([]);
+
+  useEffect(() => {
+    api.getProducts({ is_new: true, limit: 15 })
+      .then(res => { if (res.success) setNewArrivalItems(res.data.products || []); })
+      .catch(() => {});
+  }, []);
 
   const handleScroll = (dir) => {
     if (scrollRef.current) {

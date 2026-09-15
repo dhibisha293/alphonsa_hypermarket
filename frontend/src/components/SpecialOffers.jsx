@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
-import { SPECIAL_OFFERS } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
 import { Tag, Copy, Check, Sparkles, Clock, ArrowRight } from 'lucide-react';
+import * as api from '../services/api';
 
 export default function SpecialOffers({ onSelectCategory, onTriggerToast }) {
   const [copiedCode, setCopiedCode] = useState(null);
+  const [offers, setOffers] = useState([]);
+
+  useEffect(() => {
+    api.getSpecialOffers()
+      .then(res => { if (res.success) setOffers(res.data || []); })
+      .catch(() => {});
+  }, []);
 
   const handleCopyCode = (code) => {
     navigator.clipboard.writeText(code);
@@ -36,7 +43,7 @@ export default function SpecialOffers({ onSelectCategory, onTriggerToast }) {
 
         {/* Offer Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {SPECIAL_OFFERS.map(offer => (
+          {offers.map(offer => (
             <div 
               key={offer.id}
               className="bg-slate-800/90 rounded-3xl p-6 border border-slate-700/80 hover:border-emerald-500/50 transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-emerald-950/50 relative overflow-hidden"

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Heart, Search, MapPin, User, Menu, X, ChevronDown, Sparkles, Gift } from 'lucide-react';
-import { CATEGORIES } from '../data/mockData';
 import logo from '../assets/logo.png';
 
 export default function Navbar({ 
@@ -15,7 +14,10 @@ export default function Navbar({
   setSearchQuery,
   onOpenAuth,
   onOpenAbout,
-  onOpenContact
+  onOpenContact,
+  currentUser,
+  onLogout,
+  categories = [],
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
@@ -262,18 +264,18 @@ export default function Navbar({
                     <span className="text-[#0B3D20] font-extrabold">Kattathurai</span>
                   </div>
                   <div className="max-h-96 overflow-y-auto py-1">
-                    {CATEGORIES.map(cat => (
+                    {categories.map(cat => (
                       <button
                         key={cat.id}
                         onClick={() => {
-                          onSelectCategory(cat.id);
-                          setShowCategoryDropdown(false);
-                          const el = document.getElementById('popular-products');
-                          if (el) el.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                        className={`w-full px-4 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-[#EFFFF0] hover:text-[#0B3D20] transition ${
-                          selectedCategory === cat.id ? 'bg-[#EFFFF0] text-[#0B3D20] font-bold border-l-4 border-[#39FF14]' : 'text-slate-700'
-                        }`}
+                           onSelectCategory(cat.slug);
+                           setShowCategoryDropdown(false);
+                           const el = document.getElementById('popular-products');
+                           if (el) el.scrollIntoView({ behavior: 'smooth' });
+                         }}
+                         className={`w-full px-4 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-[#EFFFF0] hover:text-[#0B3D20] transition ${
+                           selectedCategory === cat.slug ? 'bg-[#EFFFF0] text-[#0B3D20] font-bold border-l-4 border-[#39FF14]' : 'text-slate-700'
+                         }`}
                       >
                         <span className="flex items-center gap-2.5">
                           <span className="text-base">{cat.icon}</span>

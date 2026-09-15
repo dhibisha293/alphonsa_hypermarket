@@ -1,7 +1,14 @@
-import React from 'react';
-import { CATEGORIES } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
+import * as api from '../services/api';
 
 export default function CategorySection({ selectedCategory, onSelectCategory }) {
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    api.getCategories()
+      .then(res => { if (res.success) setCategories(res.data || []); })
+      .catch(() => {});
+  }, []);
   return (
     <section className="py-12 bg-white border-b border-[#E5E7E5]">
       <div className="container-custom">
@@ -46,13 +53,13 @@ export default function CategorySection({ selectedCategory, onSelectCategory }) 
           </button>
 
           {/* 18 Categories */}
-          {CATEGORIES.map(cat => {
-            const isActive = selectedCategory === cat.id;
+          {categories.map(cat => {
+            const isActive = selectedCategory === cat.slug;
             return (
               <button
                 key={cat.id}
                 onClick={() => {
-                  onSelectCategory(cat.id);
+                  onSelectCategory(cat.slug);
                   const el = document.getElementById('popular-products');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}

@@ -1,7 +1,7 @@
-import React from 'react';
-import { CUSTOMIZED_GIFTS } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
 import ProductCard from './ProductCard';
 import { Gift, Sparkles, Heart, ArrowRight } from 'lucide-react';
+import * as api from '../services/api';
 
 export default function CustomizedGiftsSection({ 
   onAddToCart, 
@@ -9,6 +9,13 @@ export default function CustomizedGiftsSection({
   wishlist, 
   onQuickView 
 }) {
+  const [gifts, setGifts] = useState([]);
+
+  useEffect(() => {
+    api.getProducts({ category: 'customized-gifts', limit: 12 })
+      .then(res => { if (res.success) setGifts(res.data.products || []); })
+      .catch(() => {});
+  }, []);
   return (
     <section id="customized-gifts-section" className="py-14 bg-[#F5F7F5]">
       <div className="container-custom">
@@ -88,16 +95,20 @@ export default function CustomizedGiftsSection({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4">
-            {CUSTOMIZED_GIFTS.map(product => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={onAddToCart}
-                onToggleWishlist={onToggleWishlist}
-                isWishlisted={wishlist.some(item => item.id === product.id)}
-                onQuickView={onQuickView}
-              />
-            ))}
+            {(gifts.length > 0 ? gifts : [...Array(6)]).map((product, i) =>
+              gifts.length > 0 ? (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={onAddToCart}
+                  onToggleWishlist={onToggleWishlist}
+                  isWishlisted={wishlist.some(item => item.id === product.id)}
+                  onQuickView={onQuickView}
+                />
+              ) : (
+                <div key={i} className="bg-slate-100 rounded-2xl h-52 animate-pulse" />
+              )
+            )}
           </div>
         </div>
 

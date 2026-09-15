@@ -1,8 +1,15 @@
-import React from 'react';
-import { TESTIMONIALS } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
 import { Star, Quote, CheckCircle2 } from 'lucide-react';
+import * as api from '../services/api';
 
 export default function TestimonialSection() {
+  const [testimonials, setTestimonials] = useState([]);
+
+  useEffect(() => {
+    api.getTestimonials()
+      .then(res => { if (res.success) setTestimonials(res.data || []); })
+      .catch(() => {});
+  }, []);
   return (
     <section className="py-16 bg-slate-50 border-b border-slate-200/80">
       <div className="container-custom">
@@ -22,7 +29,7 @@ export default function TestimonialSection() {
 
         {/* Testimonials Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {TESTIMONIALS.map(testimonial => (
+          {testimonials.map(testimonial => (
             <div 
               key={testimonial.id}
               className="bg-white p-7 rounded-3xl border border-slate-200 shadow-md hover:shadow-xl hover:border-emerald-400 transition duration-300 flex flex-col justify-between relative group"

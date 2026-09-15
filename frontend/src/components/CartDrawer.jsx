@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldCheck, Tag, Sparkles, CheckCircle2 } from 'lucide-react';
+import * as api from '../services/api';
 
 export default function CartDrawer({ 
   isOpen, 
@@ -7,7 +8,10 @@ export default function CartDrawer({
   cartItems, 
   onUpdateQuantity, 
   onRemoveItem,
-  onClearCart
+  onClearCart,
+  currentUser,
+  onOrderPlaced,
+  triggerToast
 }) {
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
@@ -23,24 +27,57 @@ export default function CartDrawer({
   const discountAmount = Math.round((subtotal * discount) / 100);
   const total = Math.max(0, subtotal - discountAmount + shippingFee);
 
-  const handleApplyPromo = () => {
-    if (promoCode.toUpperCase() === 'SUPER30') {
-      setDiscount(30);
-      setAppliedCode('SUPER30');
-    } else if (promoCode.toUpperCase() === 'FRUIT20' || promoCode.toUpperCase() === 'KIDSFUN25') {
-      setDiscount(20);
-      setAppliedCode(promoCode.toUpperCase());
-    } else {
-      alert('Invalid Promo Code. Try code: SUPER30 or FRUIT20');
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) return;
+    try {
+      const res = await api.validatePromo(promoCode);
+      if (res.success && res.data?.valid) {
+        setDiscount(res.data.discount_pct);
+        setAppliedCode(promoCode.toUpperCase());
+        if (triggerToast) triggerToast(res.data.message);
+      } else {
+        if (triggerToast) triggerToast('Invalid promo code. Try: SUPER30 or FRUIT20');
+      }
+    } catch (_) {
+      if (triggerToast) triggerToast('Could not validate code. Try again.');
     }
   };
 
-  const handleCheckout = () => {
+  const [placedOrderNumber, setPlacedOrderNumber] = useState('');
+
+  const handleCheckout = async () => {
+    if (!currentUser) {
+      if (triggerToast) triggerToast('Please sign in to place an order');
+      return;
+    }
     setIsCheckingOut(true);
-    setTimeout(() => {
+    try {
+      const orderPayload = {
+        items: cartItems.map(item => ({
+          product_id: item.product_id || item.id,
+          product_name: item.name,
+          product_image: item.image,
+          unit_price: item.price,
+          quantity: item.quantity,
+          line_total: item.price * item.quantity,
+        })),
+        subtotal,
+        discount_amount: discountAmount,
+        shipping_fee: shippingFee,
+        total,
+        promo_code: appliedCode || null,
+      };
+      const res = await api.placeOrder(orderPayload);
+      if (res.success) {
+        setPlacedOrderNumber(res.data?.order_number || 'ALPH-' + Math.floor(100000 + Math.random() * 900000));
+        setOrderPlaced(true);
+        if (onOrderPlaced) onOrderPlaced();
+      }
+    } catch (err) {
+      if (triggerToast) triggerToast(err.message || 'Order failed. Please try again.');
+    } finally {
       setIsCheckingOut(false);
-      setOrderPlaced(true);
-    }, 1500);
+    }
   };
 
   return (
@@ -74,7 +111,7 @@ export default function CartDrawer({
             </div>
             <h3 className="text-2xl font-extrabold text-slate-900 font-heading">Order Placed Successfully!</h3>
             <p className="text-slate-600 text-xs leading-relaxed max-w-xs">
-              Thank you for shopping at Alphonsa Hypermarket! Order #ALPH-{Math.floor(100000 + Math.random() * 900000)} has been processed.
+              Thank you for shopping at Alphonsa Hypermarket! Order #{placedOrderNumber} has been processed.
             </p>
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs w-full text-left font-mono space-y-1">
               <div>Items Total: ₹{total}</div>
