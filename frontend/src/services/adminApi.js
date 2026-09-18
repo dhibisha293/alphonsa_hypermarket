@@ -35,6 +35,31 @@ export const updateOrderStatus = async (orderId, status) => {
   });
 };
 
+export const getRefunds = async (status = "REQUESTED") => {
+  return await adminRequest(`/admin/refunds?status=${status}`);
+};
+
+export const processRefund = async (orderId, action, reason = null) => {
+  return await adminRequest(`/admin/orders/${orderId}/refund`, {
+    method: 'PATCH',
+    body: JSON.stringify({ action, refund_reason: reason })
+  });
+};
+
+export const updatePaymentStatus = async (orderId, paymentStatus) => {
+  return await adminRequest(`/admin/orders/${orderId}/payment-status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ payment_status: paymentStatus })
+  });
+};
+
+export const adminCancelOrder = async (orderId, reason = null) => {
+  return await adminRequest(`/admin/orders/${orderId}/cancel`, {
+    method: 'POST',
+    body: JSON.stringify({ reason })
+  });
+};
+
 // --- PROMOTIONS (Coupons & Offers) ---
 
 export const getCoupons = async () => {
@@ -234,3 +259,47 @@ export const uploadProductsCsv = async (file) => {
   if (!res.ok) throw new Error(json.detail || "Upload failed");
   return json;
 };
+
+// ─── INVENTORY ────────────────────────────────────────────────────────────────
+
+export const getInventoryStats = () => adminRequest("/admin/inventory/stats");
+
+export const getInventory = (page = 1, pageSize = 20, search = '', status = '', categoryId = '') => {
+  let query = `?page=${page}&page_size=${pageSize}`;
+  if (search) query += `&search=${encodeURIComponent(search)}`;
+  if (status) query += `&status=${status}`;
+  if (categoryId) query += `&category_id=${categoryId}`;
+  return adminRequest(`/admin/inventory${query}`);
+};
+
+export const adjustStock = (productId, data) => 
+  adminRequest(`/admin/inventory/${productId}/adjust`, { 
+    method: "POST", 
+    body: JSON.stringify(data) 
+  });
+
+export const getInventoryMovements = (page = 1, pageSize = 20, productId = '', type = '') => {
+  let query = `?page=${page}&page_size=${pageSize}`;
+  if (productId) query += `&product_id=${productId}`;
+  if (type) query += `&type=${type}`;
+  return adminRequest(`/admin/inventory/movements${query}`);
+};
+
+// ─── REVIEWS ─────────────────────────────────────────────────────────────────
+
+export const getAdminReviews = (page = 1, pageSize = 20, status = '', productId = '') => {
+  let query = `?page=${page}&page_size=${pageSize}`;
+  if (status) query += `&status=${status}`;
+  if (productId) query += `&product_id=${productId}`;
+  return adminRequest(`/admin/reviews${query}`);
+};
+
+export const moderateReview = (reviewId, status) =>
+  adminRequest(`/admin/reviews/${reviewId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status })
+  });
+
+export const adminDeleteReview = (reviewId) =>
+  adminRequest(`/admin/reviews/${reviewId}`, { method: 'DELETE' });
+

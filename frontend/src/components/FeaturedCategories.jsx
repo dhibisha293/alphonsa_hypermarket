@@ -1,8 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FEATURED_CLUSTERS } from '../data/mockData';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
-export default function FeaturedCategories({ onSelectCategory }) {
+export default function FeaturedCategories() {
+  const navigate = useNavigate();
   return (
     <section className="py-14 bg-slate-50 border-b border-slate-200/80">
       <div className="container-custom">
@@ -68,9 +70,7 @@ export default function FeaturedCategories({ onSelectCategory }) {
                         key={tIdx}
                         onClick={() => {
                           const catId = tag.toLowerCase().replace(/ /g, '-');
-                          onSelectCategory(catId);
-                          const el = document.getElementById('popular-products');
-                          if (el) el.scrollIntoView({ behavior: 'smooth' });
+                          navigate(`/category/${catId}`);
                         }}
                         className="bg-white/15 backdrop-blur-md text-white text-[11px] font-semibold px-3 py-1 rounded-full border border-white/20 hover:bg-emerald-500 hover:text-slate-950 hover:border-emerald-500 transition cursor-pointer"
                       >
@@ -83,9 +83,7 @@ export default function FeaturedCategories({ onSelectCategory }) {
                   <button 
                     onClick={() => {
                       const firstCat = cluster.tags[0].toLowerCase().replace(/ /g, '-');
-                      onSelectCategory(firstCat);
-                      const el = document.getElementById('popular-products');
-                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      navigate(`/category/${firstCat}`);
                     }}
                     className="mt-6 inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-bold text-xs uppercase tracking-wider group-hover:translate-x-1 transition"
                   >

@@ -2,7 +2,7 @@ import time
 from collections import defaultdict
 from fastapi import APIRouter, HTTPException, Request, Depends
 from app.database import supabase_anon, supabase
-from app.schemas.auth import RegisterRequest, LoginRequest, AuthResponse
+from app.schemas.auth import RegisterRequest, LoginRequest, AuthResponse, ProfileUpdateRequest
 from app.utils.responses import ok, fail
 from app.middleware.auth import get_current_user
 
@@ -132,4 +132,37 @@ async def get_me(user=Depends(get_current_user)):
         "full_name": full_name,
         "role": role,
         "loyalty_points": loyalty_points,
+        "phone": profile_res.data.get("phone", "") if profile_res.data else ""
     })
+
+@router.put("/me", summary="Update current user profile")
+async def update_me(body: ProfileUpdateRequest, user=Depends(get_current_user)):
+    """
+    Update the user's profile information (name and phone).
+    """
+    update_data = {}
+    if body.full_name is not None:
+        update_data["full_name"] = body.full_name
+    if body.phone is not None:
+        update_data["phone"] = body.phone
+        
+    if not update_data:
+        return ok(message="No changes provided")
+
+    try:
+        supabase.table("profiles").update(update_data).eq("id", str(user.id)).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to update profile")
+
+    # If full_name is updated, we might also want to update the raw_user_meta_data in auth.users
+    # However, supabase python client provides update_user for this.
+    if body.full_name is not None:
+        try:
+            supabase.auth.admin.update_user_by_id(
+                str(user.id),
+                {"user_metadata": {"full_name": body.full_name}}
+            )
+        except Exception:
+            pass # ignore if this fails, profile table is the main source
+
+    return ok(message="Profile updated successfully")

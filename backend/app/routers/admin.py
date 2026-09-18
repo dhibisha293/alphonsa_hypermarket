@@ -88,9 +88,166 @@ async def update_order_status(order_id: str, body: OrderStatusUpdate):
         raise HTTPException(status_code=400, detail="Invalid status")
         
     try:
-        update_res = supabase.table("orders").update({"status": body.status}).eq("id", order_id).execute()
+        update_payload = {"status": body.status}
+        # If admin is cancelling, record it
+        if body.status == "cancelled":
+            update_payload["cancelled_by"] = "ADMIN"
+        update_res = supabase.table("orders").update(update_payload).eq("id", order_id).execute()
         if not update_res.data:
             raise HTTPException(status_code=404, detail="Order not found")
+            
+        order_data = update_res.data[0]
+        # Notify the user
+        if order_data.get("user_id"):
+            supabase.table("notifications").insert({
+                "user_id": order_data["user_id"],
+                "type": "ORDER_UPDATE",
+                "title": f"Order Status: {body.status.capitalize()}",
+                "message": f"Your order {order_data.get('order_number', '')} is now {body.status}.",
+                "link": f"/account/orders/{order_id}"
+            }).execute()
+            
         return ok(message="Order status updated")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─── Payment & Refund Management ────────────────────────────────────────────
+
+
+class PaymentStatusUpdate(BaseModel):
+    payment_status: str
+
+
+class RefundAction(BaseModel):
+    action: str  # 'APPROVE' | 'REJECT'
+    refund_reason: Optional[str] = None
+
+
+class AdminCancelOrder(BaseModel):
+    reason: Optional[str] = None
+
+
+@router.get("/refunds", summary="List orders with pending refund requests")
+async def list_refunds(status: str = "REQUESTED"):
+    """Returns orders where refund_status matches the given status."""
+    valid = {"REQUESTED", "PROCESSING", "COMPLETED", "REJECTED", "NONE"}
+    if status not in valid:
+        raise HTTPException(status_code=400, detail=f"Invalid refund status. Must be one of: {valid}")
+    try:
+        res = (
+            supabase.table("orders")
+            .select("id, order_number, user_id, total, refund_status, refund_amount, refund_reason, refunded_at, payment_method, status, created_at, cancelled_by")
+            .eq("refund_status", status)
+            .order("created_at", desc=True)
+            .execute()
+        )
+        orders_data = res.data or []
+        # Enrich with customer name
+        user_ids = list(set(o["user_id"] for o in orders_data if o.get("user_id")))
+        profiles = {}
+        if user_ids:
+            prof_res = supabase.table("profiles").select("id, full_name").in_("id", user_ids).execute()
+            profiles = {p["id"]: p.get("full_name", "Unknown") for p in (prof_res.data or [])}
+        for o in orders_data:
+            o["customer_name"] = profiles.get(o.get("user_id"), "Unknown")
+        return ok(data=orders_data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/orders/{order_id}/refund", summary="Process or reject a refund request")
+async def process_refund(order_id: str, body: RefundAction):
+    if body.action not in ("APPROVE", "REJECT"):
+        raise HTTPException(status_code=400, detail="action must be 'APPROVE' or 'REJECT'")
+    try:
+        from datetime import datetime, timezone
+        order_res = supabase.table("orders").select("*").eq("id", order_id).maybe_single().execute()
+        if not order_res.data:
+            raise HTTPException(status_code=404, detail="Order not found")
+
+        update = {}
+        if body.action == "APPROVE":
+            update = {
+                "refund_status": "COMPLETED",
+                "payment_status": "REFUNDED",
+                "refunded_at": datetime.now(timezone.utc).isoformat(),
+            }
+        else:
+            update = {
+                "refund_status": "REJECTED",
+                "refund_reason": body.refund_reason or "Rejected by admin",
+            }
+
+        update_res = supabase.table("orders").update(update).eq("id", order_id).execute()
+        
+        if update_res.data:
+            order_data = update_res.data[0]
+            if order_data.get("user_id"):
+                action_str = "Approved" if body.action == "APPROVE" else "Rejected"
+                supabase.table("notifications").insert({
+                    "user_id": order_data["user_id"],
+                    "type": "ORDER_UPDATE",
+                    "title": f"Refund {action_str}",
+                    "message": f"Your refund request for order {order_data.get('order_number', '')} has been {action_str.lower()}.",
+                    "link": f"/account/orders/{order_id}"
+                }).execute()
+                
+        return ok(message=f"Refund {'approved' if body.action == 'APPROVE' else 'rejected'} successfully")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/orders/{order_id}/payment-status", summary="Update order payment status")
+async def update_payment_status(order_id: str, body: PaymentStatusUpdate):
+    valid_payment_statuses = ["PENDING", "PAID", "FAILED", "REFUNDED", "PARTIALLY_REFUNDED"]
+    if body.payment_status not in valid_payment_statuses:
+        raise HTTPException(status_code=400, detail=f"Invalid payment status. Must be one of: {valid_payment_statuses}")
+    try:
+        res = supabase.table("orders").update({"payment_status": body.payment_status}).eq("id", order_id).execute()
+        if not res.data:
+            raise HTTPException(status_code=404, detail="Order not found")
+        return ok(message="Payment status updated")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/orders/{order_id}/cancel", summary="Admin cancels an order with optional reason + stock restoration")
+async def admin_cancel_order(order_id: str, body: AdminCancelOrder):
+    try:
+        order_res = supabase.table("orders").select("*").eq("id", order_id).maybe_single().execute()
+        if not order_res.data:
+            raise HTTPException(status_code=404, detail="Order not found")
+        order = order_res.data
+
+        if order["status"] == "cancelled":
+            return ok(message="Order is already cancelled")
+
+        # Restore inventory
+        items_res = supabase.table("order_items").select("product_id, quantity").eq("order_id", order_id).execute()
+        for item in (items_res.data or []):
+            inv = supabase.table("inventory").select("current_stock").eq("product_id", item["product_id"]).maybe_single().execute()
+            if inv.data:
+                supabase.table("inventory").update({"current_stock": inv.data["current_stock"] + item["quantity"]}).eq("product_id", item["product_id"]).execute()
+                supabase.table("stock_movements").insert({
+                    "product_id": item["product_id"],
+                    "type": "ADJUSTMENT",
+                    "quantity": item["quantity"],
+                    "reference_id": order_id,
+                    "notes": f"Restored via admin cancellation of {order['order_number']}"
+                }).execute()
+
+        refund_status = "REQUESTED" if order.get("payment_method") not in ("COD",) and order.get("payment_status") == "PAID" else "NONE"
+
+        supabase.table("orders").update({
+            "status": "cancelled",
+            "cancelled_by": "ADMIN",
+            "refund_status": refund_status,
+            "refund_amount": float(order["total"]) if refund_status == "REQUESTED" else None,
+            "refund_reason": body.reason,
+        }).eq("id", order_id).execute()
+
+        return ok(message="Order cancelled by admin. Inventory restored.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

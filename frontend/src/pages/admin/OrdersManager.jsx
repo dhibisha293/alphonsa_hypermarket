@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getOrders, updateOrderStatus } from '../../services/adminApi';
+import { getOrders, updateOrderStatus, updatePaymentStatus } from '../../services/adminApi';
 import { Loader2, Search, PackageOpen, Eye, X, MapPin, Receipt, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -115,9 +115,16 @@ export default function OrdersManager() {
                     ₹{Number(order.total).toLocaleString()}
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${getStatusBadge(order.status)}`}>
-                      {order.status}
-                    </span>
+                    <div className="flex flex-col gap-1 items-start">
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${getStatusBadge(order.status)}`}>
+                        {order.status}
+                      </span>
+                      {order.refund_status && order.refund_status !== 'NONE' && (
+                        <span className="px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wide bg-amber-100 text-amber-800 border border-amber-200">
+                          REFUND: {order.refund_status}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -273,6 +280,14 @@ export default function OrdersManager() {
                   <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
                     {selectedOrder.delivery_address || 'No shipping address provided.'}
                   </p>
+                  {(selectedOrder.delivery_date || selectedOrder.delivery_time_slot) && (
+                    <div className="mt-3 pt-3 border-t border-slate-200">
+                      <p className="text-xs font-bold text-slate-700 mb-1">Scheduled For:</p>
+                      <p className="text-xs text-slate-800 font-semibold">
+                        {selectedOrder.delivery_date || 'Any Date'} | {selectedOrder.delivery_time_slot || 'Any Time'}
+                      </p>
+                    </div>
+                  )}
                   {selectedOrder.notes && (
                     <div className="mt-3 pt-3 border-t border-slate-200">
                       <p className="text-xs font-bold text-slate-700 mb-1">Order Notes:</p>
@@ -335,20 +350,47 @@ export default function OrdersManager() {
 
             {/* Modal Footer */}
             <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <label className="text-xs font-bold text-slate-700">Update Status:</label>
-                <select 
-                  className="bg-white border border-slate-300 text-slate-800 text-sm font-medium rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block px-3 py-1.5"
-                  value={selectedOrder.status}
-                  onChange={(e) => handleStatusChange(selectedOrder.id, e.target.value)}
-                >
-                  <option value="pending">Pending</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="packing">Packing</option>
-                  <option value="dispatched">Dispatched</option>
-                  <option value="delivered">Delivered</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-3">
+                  <label className="text-xs font-bold text-slate-700 w-24">Order Status:</label>
+                  <select 
+                    className="bg-white border border-slate-300 text-slate-800 text-sm font-medium rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block px-3 py-1.5 min-w-[140px]"
+                    value={selectedOrder.status}
+                    onChange={(e) => handleStatusChange(selectedOrder.id, e.target.value)}
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="packing">Packing</option>
+                    <option value="dispatched">Dispatched</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="text-xs font-bold text-slate-700 w-24">Payment Status:</label>
+                  <select 
+                    className="bg-white border border-slate-300 text-slate-800 text-sm font-medium rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block px-3 py-1.5 min-w-[140px]"
+                    value={selectedOrder.payment_status || 'PENDING'}
+                    onChange={async (e) => {
+                      const newStatus = e.target.value;
+                      try {
+                        const res = await updatePaymentStatus(selectedOrder.id, newStatus);
+                        if (res.success) {
+                          setSelectedOrder(prev => ({ ...prev, payment_status: newStatus }));
+                          setOrders(orders.map(o => o.id === selectedOrder.id ? { ...o, payment_status: newStatus } : o));
+                          toast.success("Payment status updated successfully");
+                        }
+                      } catch (err) {
+                        toast.error(err.message || 'Failed to update payment status');
+                      }
+                    }}
+                  >
+                    <option value="PENDING">Pending</option>
+                    <option value="PAID">Paid</option>
+                    <option value="FAILED">Failed</option>
+                    <option value="REFUNDED">Refunded</option>
+                  </select>
+                </div>
               </div>
               <button 
                 onClick={() => setSelectedOrder(null)} 

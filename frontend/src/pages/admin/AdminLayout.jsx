@@ -42,6 +42,7 @@ export default function AdminLayout() {
     { name: 'Inventory', path: '/admin/inventory', icon: Package },
     { name: 'Promotions', path: '/admin/promotions', icon: Package },
     { name: 'Delivery', path: '/admin/delivery', icon: Package },
+    { name: 'Refunds', path: '/admin/refunds', icon: Package },
     { name: 'Suppliers', path: '/admin/suppliers', icon: Package },
     { name: 'POS Sync', path: '/admin/pos', icon: Package },
     { name: 'Reports', path: '/admin/reports', icon: Package },

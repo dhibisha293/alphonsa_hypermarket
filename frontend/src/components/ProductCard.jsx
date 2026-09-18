@@ -1,5 +1,6 @@
 import React from 'react';
 import { Heart, ShoppingCart, Eye, Star, Check } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function ProductCard({ 
   product, 
@@ -11,19 +12,23 @@ export default function ProductCard({
   const [added, setAdded] = React.useState(false);
 
   const handleAdd = (e) => {
+    e.preventDefault();
     e.stopPropagation();
     onAddToCart(product);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
+  
+  const createSlug = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const productUrl = `/product/${product.id}/${createSlug(product.name)}`;
 
   return (
     <div className="product-card group bg-white border border-slate-200 rounded-2xl overflow-hidden transition-all duration-300 flex flex-col justify-between hover:-translate-y-1 hover:shadow-xl hover:border-primary">
       
       {/* Product Image Area */}
-      <div 
-        className="product-img-container aspect-square bg-slate-50 relative overflow-hidden cursor-pointer"
-        onClick={() => onQuickView(product)}
+      <Link 
+        to={productUrl}
+        className="product-img-container aspect-square bg-slate-50 relative overflow-hidden block"
       >
         {/* Discount Badge */}
         {product.discount > 0 && (
@@ -42,10 +47,11 @@ export default function ProductCard({
         {/* Wishlist Heart */}
         <button 
           onClick={(e) => {
+            e.preventDefault();
             e.stopPropagation();
             onToggleWishlist(product);
           }}
-          className={`absolute top-2.5 right-2.5 z-10 p-2 rounded-full backdrop-blur-sm transition ${
+          className={`absolute top-2.5 right-2.5 z-20 p-2 rounded-full backdrop-blur-sm transition ${
             isWishlisted 
               ? 'bg-rose-500 text-white shadow-md' 
               : 'bg-white/80 text-slate-600 hover:bg-rose-500 hover:text-white'
@@ -59,10 +65,11 @@ export default function ProductCard({
         {/* Quick View Button */}
         <button
           onClick={(e) => {
+            e.preventDefault();
             e.stopPropagation();
             onQuickView(product);
           }}
-          className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-10 bg-white/95 text-slate-800 hover:bg-primary hover:text-white font-bold text-[11px] px-4 py-1.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-1 backdrop-blur-sm"
+          className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-20 bg-white/95 text-slate-800 hover:bg-primary hover:text-white font-bold text-[11px] px-4 py-1.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-1 backdrop-blur-sm"
           aria-label={`Quick view ${product.name}`}
         >
           <Eye className="w-3 h-3" />
@@ -76,7 +83,7 @@ export default function ProductCard({
           className="product-img w-full h-full object-cover group-hover:scale-105 transition duration-400"
           loading="lazy"
         />
-      </div>
+      </Link>
 
       {/* Details */}
       <div className="p-3.5 flex flex-col justify-between flex-grow">
@@ -88,12 +95,11 @@ export default function ProductCard({
             <span>{product.unit}</span>
           </div>
 
-          <h3 
-            onClick={() => onQuickView(product)}
-            className="font-bold text-slate-900 text-sm hover:text-primary transition cursor-pointer line-clamp-2 min-h-[38px] leading-snug font-heading"
-          >
-            {product.name}
-          </h3>
+          <Link to={productUrl}>
+            <h3 className="font-bold text-slate-900 text-sm hover:text-primary transition cursor-pointer line-clamp-2 min-h-[38px] leading-snug font-heading">
+              {product.name}
+            </h3>
+          </Link>
 
           <div className="flex items-center gap-1 mt-1.5">
             <div className="flex text-amber-400">

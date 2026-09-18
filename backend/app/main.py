@@ -12,10 +12,14 @@ from app.routers import (
     cart,
     wishlist,
     orders,
+    addresses,
     promo,
     contact,
     admin,
     admin_catalog,
+    admin_inventory,
+    reviews,
+    admin_reviews,
 )
 
 app = FastAPI(
@@ -57,7 +61,11 @@ app.include_router(auth.router,           prefix="/api")
 app.include_router(cart.router,           prefix="/api")
 app.include_router(wishlist.router,       prefix="/api")
 app.include_router(orders.router,         prefix="/api")
+app.include_router(addresses.router,      prefix="/api")
 app.include_router(promo.router,          prefix="/api")
 app.include_router(contact.router,        prefix="/api")
 app.include_router(admin.router,          prefix="/api")
 app.include_router(admin_catalog.router,  prefix="/api")
+app.include_router(admin_inventory.router, prefix="/api")
+app.include_router(reviews.router,         prefix="/api")
+app.include_router(admin_reviews.router,   prefix="/api")

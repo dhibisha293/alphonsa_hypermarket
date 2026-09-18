@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
 
-export default function CategorySection({ selectedCategory, onSelectCategory }) {
+export default function CategorySection() {
   const [categories, setCategories] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     api.getCategories()
       .then(res => { if (res.success) setCategories(res.data || []); })
       .catch(() => {});
   }, []);
+  
   return (
     <section className="py-12 bg-white border-b border-slate-200">
       <div className="container-custom">
@@ -24,7 +27,7 @@ export default function CategorySection({ selectedCategory, onSelectCategory }) 
           <p className="text-xs text-slate-500 mt-1">
             Browse our wide selection of hypermarket departments in Kattathurai
           </p>
-          <button className="category-view-all" onClick={() => onSelectCategory('all')}>
+          <button className="category-view-all" onClick={() => navigate('/products')}>
             View All Categories <span>→</span>
           </button>
         </div>
@@ -34,16 +37,8 @@ export default function CategorySection({ selectedCategory, onSelectCategory }) 
           
           {/* All Categories Option */}
           <button
-            onClick={() => {
-              onSelectCategory('all');
-              const el = document.getElementById('popular-products');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }}
-            className={`category-card p-3.5 rounded-2xl bg-white border transition-all duration-300 flex flex-col items-center justify-center group hover:-translate-y-1 hover:border-primary hover:shadow-md ${
-              selectedCategory === 'all' 
-                ? 'border-primary bg-emerald-50 ring-2 ring-primary/20' 
-                : 'border-slate-200'
-            }`}
+            onClick={() => navigate('/products')}
+            className={`category-card p-3.5 rounded-2xl bg-white border transition-all duration-300 flex flex-col items-center justify-center group hover:-translate-y-1 hover:border-primary hover:shadow-md border-slate-200`}
           >
             <div className="w-14 h-14 rounded-xl bg-primary-dark text-white flex items-center justify-center text-2xl mb-2 group-hover:scale-105 transition duration-300">
               🏬
@@ -54,20 +49,11 @@ export default function CategorySection({ selectedCategory, onSelectCategory }) 
 
           {/* 18 Categories */}
           {categories.map(cat => {
-            const isActive = selectedCategory === cat.slug;
             return (
               <button
                 key={cat.id}
-                onClick={() => {
-                  onSelectCategory(cat.slug);
-                  const el = document.getElementById('popular-products');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className={`category-card p-3.5 rounded-2xl bg-white border transition-all duration-300 flex flex-col items-center justify-center group hover:-translate-y-1 hover:border-primary hover:shadow-md ${
-                  isActive 
-                    ? 'border-primary bg-emerald-50 ring-2 ring-primary/20' 
-                    : 'border-slate-200'
-                }`}
+                onClick={() => navigate(`/category/${cat.slug}`)}
+                className={`category-card p-3.5 rounded-2xl bg-white border transition-all duration-300 flex flex-col items-center justify-center group hover:-translate-y-1 hover:border-primary hover:shadow-md border-slate-200`}
               >
                 <div className="relative w-14 h-14 rounded-xl overflow-hidden mb-2 bg-slate-50">
                   <img 

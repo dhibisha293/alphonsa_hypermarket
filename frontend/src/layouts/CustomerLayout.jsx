@@ -1,34 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import CategorySection from './components/CategorySection';
-import PromoBanner from './components/PromoBanner';
-import FeaturedCategories from './components/FeaturedCategories';
-import ProductGrid from './components/ProductGrid';
-import BakerySection from './components/BakerySection';
-import CustomizedGiftsSection from './components/CustomizedGiftsSection';
-import FreeDeliveryBanner from './components/FreeDeliveryBanner';
-import SpecialOffers from './components/SpecialOffers';
-import NewArrivals from './components/NewArrivals';
-import BestSellers from './components/BestSellers';
-import WhyChooseAlphonsa from './components/WhyChooseAlphonsa';
-import StoreExperience from './components/StoreExperience';
-import TestimonialSection from './components/TestimonialSection';
-import Footer from './components/Footer';
-import CartDrawer from './components/CartDrawer';
-import WishlistDrawer from './components/WishlistDrawer';
-import ProductQuickView from './components/ProductQuickView';
-import LocationModal from './components/LocationModal';
-import MobileNavigation from './components/MobileNavigation';
-import AboutContactModal from './components/AboutContactModal';
-import AuthModal from './components/AuthModal';
+import React, { useState, useEffect } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import CartDrawer from '../components/CartDrawer';
+import WishlistDrawer from '../components/WishlistDrawer';
+import ProductQuickView from '../components/ProductQuickView';
+import LocationModal from '../components/LocationModal';
+import MobileNavigation from '../components/MobileNavigation';
+import AboutContactModal from '../components/AboutContactModal';
+import AuthModal from '../components/AuthModal';
 import { Toaster, toast } from 'sonner';
-import { LOCATIONS } from './data/mockData';
+import { LOCATIONS } from '../data/mockData';
+import * as api from '../services/api';
 
-// API service — all backend calls go through here
-import * as api from './services/api';
+export default function CustomerLayout() {
+  const navigate = useNavigate();
 
-export default function Storefront() {
   // ─── Auth state ────────────────────────────────────────────────────────────
   const [currentUser, setCurrentUser] = useState(null); // { user_id, email, full_name }
 
@@ -36,13 +23,10 @@ export default function Storefront() {
   const [navCategories, setNavCategories] = useState([]);
 
   // ─── Cart & Wishlist ───────────────────────────────────────────────────────
-  // Shape of each item matches what ProductCard/CartDrawer expect:
-  // { id, product_id, name, price, image, unit, category, categoryLabel, quantity }
   const [cartItems, setCartItems]   = useState([]);
   const [wishlist,  setWishlist]    = useState([]);
 
   // ─── UI state ─────────────────────────────────────────────────────────────
-  const [selectedCategory,    setSelectedCategory]    = useState('all');
   const [searchQuery,         setSearchQuery]         = useState('');
   const [selectedLocation,    setSelectedLocation]    = useState(LOCATIONS[0]);
   const [isCartOpen,          setIsCartOpen]          = useState(false);
@@ -84,7 +68,6 @@ export default function Storefront() {
     try {
       const res = await api.getCart();
       if (res.success) {
-        // Normalize: backend returns product_id; UI also needs id for keying
         const items = (res.data || []).map(item => ({
           ...item,
           id: item.product_id, // keep id = product_id for compatibility
@@ -139,7 +122,6 @@ export default function Storefront() {
     const qtyToAdd = product.quantity || 1;
 
     if (currentUser) {
-      // Logged-in: sync to backend
       try {
         await api.addToCart(product.id, qtyToAdd);
         await loadCartFromBackend();
@@ -148,7 +130,6 @@ export default function Storefront() {
         return;
       }
     } else {
-      // Guest: local state only
       setCartItems(prev => {
         const existing = prev.find(item => item.id === product.id);
         if (existing) {
@@ -219,7 +200,6 @@ export default function Storefront() {
         triggerToast('Failed to update wishlist');
       }
     } else {
-      // Guest: local state only
       setWishlist(prev => {
         if (exists) {
           triggerToast(`Removed '${product.name}' from Wishlist`);
@@ -231,11 +211,34 @@ export default function Storefront() {
     }
   };
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+
+  // Context value to be provided to all child routes
+  const outletContext = {
+    currentUser,
+    cartItems,
+    wishlist,
+    handleAddToCart,
+    handleUpdateQuantity,
+    handleRemoveFromCart,
+    handleClearCart,
+    handleToggleWishlist,
+    setQuickViewProduct,
+    triggerToast,
+    setIsCartOpen,
+    setIsAuthOpen
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between font-sans selection:bg-primary selection:text-slate-900">
-
+      
       {/* Sticky Navbar */}
       <Navbar
         cartItems={cartItems}
@@ -246,93 +249,25 @@ export default function Storefront() {
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenAbout={() => { setAboutContactMode('about'); setIsAboutContactOpen(true); }}
         onOpenContact={() => { setAboutContactMode('contact'); setIsAboutContactOpen(true); }}
-        onSelectCategory={setSelectedCategory}
-        selectedCategory={selectedCategory}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        onSearchSubmit={handleSearchSubmit}
         currentUser={currentUser}
         onLogout={handleLogout}
         categories={navCategories}
       />
 
       <main className="flex-1">
-        <Hero
-          onShopNow={() => { const el = document.getElementById('popular-products'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }}
-          onExploreCategories={() => { const el = document.getElementById('popular-products'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }}
-        />
-
-        <section className="market-ribbon" aria-label="Alphonsa store highlights">
-          <div className="container-custom market-ribbon-inner">
-            <span className="market-ribbon-kicker">A LOCAL STORE WITH A BIG HEART</span>
-            <div className="market-ribbon-items">
-              <div><strong>22+</strong><span>departments</span></div>
-              <div><strong>3 KM</strong><span>free delivery</span></div>
-              <div><strong>7 DAYS</strong><span>fresh bakery</span></div>
-              <div><strong>1 STOP</strong><span>happy shopping</span></div>
-            </div>
-          </div>
-        </section>
-
-        <CategorySection selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
-        <PromoBanner onSelectCategory={setSelectedCategory} />
-        <FeaturedCategories onSelectCategory={setSelectedCategory} />
-
-        <ProductGrid
-          selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
-          searchQuery={searchQuery}
-          onAddToCart={handleAddToCart}
-          onToggleWishlist={handleToggleWishlist}
-          wishlist={wishlist}
-          onQuickView={setQuickViewProduct}
-        />
-
-        <BakerySection
-          onAddToCart={handleAddToCart}
-          onToggleWishlist={handleToggleWishlist}
-          wishlist={wishlist}
-          onQuickView={setQuickViewProduct}
-          onSelectCategory={setSelectedCategory}
-        />
-
-        <CustomizedGiftsSection
-          onAddToCart={handleAddToCart}
-          onToggleWishlist={handleToggleWishlist}
-          wishlist={wishlist}
-          onQuickView={setQuickViewProduct}
-        />
-
-        <FreeDeliveryBanner onOpenLocation={() => setIsLocationOpen(true)} />
-
-        <SpecialOffers onSelectCategory={setSelectedCategory} onTriggerToast={triggerToast} />
-
-        <NewArrivals
-          onAddToCart={handleAddToCart}
-          onToggleWishlist={handleToggleWishlist}
-          wishlist={wishlist}
-          onQuickView={setQuickViewProduct}
-        />
-
-        <BestSellers
-          onAddToCart={handleAddToCart}
-          onToggleWishlist={handleToggleWishlist}
-          wishlist={wishlist}
-          onQuickView={setQuickViewProduct}
-        />
-
-        <WhyChooseAlphonsa />
-        <StoreExperience onOpenLocation={() => setIsLocationOpen(true)} />
-        <TestimonialSection />
+        {/* Child routes render here */}
+        <Outlet context={outletContext} />
       </main>
 
       <Footer
-        onSelectCategory={setSelectedCategory}
         onOpenAbout={() => { setAboutContactMode('about'); setIsAboutContactOpen(true); }}
         onOpenContact={() => { setAboutContactMode('contact'); setIsAboutContactOpen(true); }}
       />
 
       <MobileNavigation
-        onSelectCategory={setSelectedCategory}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenWishlist={() => setIsWishlistOpen(true)}
         cartCount={totalCartCount}

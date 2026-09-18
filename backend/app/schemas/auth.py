@@ -29,3 +29,7 @@ class AuthResponse(BaseModel):
     email: str
     full_name: Optional[str] = None
     role: str = "customer"
+
+class ProfileUpdateRequest(BaseModel):
+    full_name: Optional[str] = None
+    phone: Optional[str] = None

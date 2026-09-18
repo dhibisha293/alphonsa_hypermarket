@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Heart, Search, MapPin, User, Menu, X, ChevronDown, Sparkles, Gift } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
+import NotificationBell from './NotificationBell';
 
 export default function Navbar({ 
   cartItems, 
@@ -8,10 +10,9 @@ export default function Navbar({
   onOpenCart, 
   onOpenLocation, 
   onOpenWishlist,
-  onSelectCategory,
-  selectedCategory,
   searchQuery,
   setSearchQuery,
+  onSearchSubmit,
   onOpenAuth,
   onOpenAbout,
   onOpenContact,
@@ -22,37 +23,18 @@ export default function Navbar({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   const navLinks = [
-    { label: 'Home', action: () => onSelectCategory('all') },
-    { label: 'Shop', action: () => {
-        const el = document.getElementById('popular-products');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }
-    },
+    { label: 'Home', path: '/' },
+    { label: 'Shop', path: '/products' },
     { label: 'Categories', isDropdown: true },
-    { label: 'Offers', action: () => {
-        const el = document.getElementById('special-offers');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      } 
-    },
-    { label: 'Bakery', action: () => {
-        const el = document.getElementById('bakery-special');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      } 
-    },
-    { label: 'Customized Gifts', action: () => {
-        const el = document.getElementById('customized-gifts-section');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      } 
-    },
-    { label: 'New Arrivals', action: () => {
-        const el = document.getElementById('new-arrivals');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      } 
-    },
+    { label: 'Offers', path: '/deals' },
+    { label: 'Bakery', path: '/category/bakery-sweets' },
+    { label: 'Customized Gifts', path: '/category/customized-gifts' },
     { label: 'About Us', action: () => onOpenAbout() },
     { label: 'Contact', action: () => onOpenContact() }
   ];
@@ -78,7 +60,7 @@ export default function Navbar({
         <div className="container-custom flex items-center justify-between gap-4 h-[52px]">
           
           {/* Left: Brand Logo & Icon */}
-          <div className="brand-lockup flex items-center gap-2.5 cursor-pointer shrink-0" onClick={() => onSelectCategory('all')}>
+          <Link to="/" className="brand-lockup flex items-center gap-2.5 cursor-pointer shrink-0">
             <div className="brand-mark transform hover:scale-105 transition duration-300">
               <img src={logo} alt="Alphonsa Hypermarket logo" className="w-full h-full object-contain" />
             </div>
@@ -95,11 +77,11 @@ export default function Navbar({
                 Kattathurai • "Everything You Need, All in One Place"
               </p>
             </div>
-          </div>
+          </Link>
 
           {/* Center: Search Bar */}
           <div className="hidden lg:flex flex-1 max-w-lg relative mx-4">
-            <div className={`main-search w-full flex items-center bg-slate-50 rounded-full border transition-all duration-300 ${
+            <form onSubmit={onSearchSubmit} className={`main-search w-full flex items-center bg-slate-50 rounded-full border transition-all duration-300 ${
               isSearchFocused ? 'border-primary ring-4 ring-primary/10 bg-white shadow-md' : 'border-slate-200 hover:border-slate-300'
             }`}>
               <Search className="w-4 h-4 text-primary ml-4 shrink-0 stroke-[2.5]" />
@@ -114,6 +96,7 @@ export default function Navbar({
               />
               {searchQuery && (
                 <button 
+                  type="button"
                   onClick={() => setSearchQuery('')}
                   className="mr-2 text-xs text-slate-400 hover:text-slate-600 bg-slate-200 rounded-full w-4 h-4 flex items-center justify-center"
                   aria-label="Clear search"
@@ -122,15 +105,12 @@ export default function Navbar({
                 </button>
               )}
               <button 
-                onClick={() => {
-                  const el = document.getElementById('popular-products');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
+                type="submit"
                 className="btn-neon text-xs py-1.5 px-5 mr-1.5 font-bold rounded-full shadow-md shadow-primary/20"
               >
                 Search
               </button>
-            </div>
+            </form>
 
             {/* Quick Autocomplete Suggestions */}
             {isSearchFocused && searchQuery.length > 0 && (
@@ -141,7 +121,10 @@ export default function Navbar({
                   .map((item, idx) => (
                     <div 
                       key={idx}
-                      onMouseDown={() => setSearchQuery(item)}
+                      onMouseDown={() => {
+                        setSearchQuery(item);
+                        navigate(`/search?q=${encodeURIComponent(item)}`);
+                      }}
                       className="px-3 py-2 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl cursor-pointer flex items-center justify-between transition-colors"
                     >
                       <span className="flex items-center gap-2">
@@ -172,6 +155,9 @@ export default function Navbar({
               </div>
               <ChevronDown className="w-3 h-3 text-slate-400 hidden sm:block" />
             </button>
+
+            {/* Notification Bell */}
+            <NotificationBell user={currentUser} />
 
             {/* Wishlist */}
             <button 
@@ -209,7 +195,7 @@ export default function Navbar({
 
             {/* Profile */}
             <button 
-              onClick={onOpenAuth}
+              onClick={currentUser ? () => navigate('/account') : onOpenAuth}
               className="p-2 rounded-full hover:bg-slate-100 transition text-slate-700 border border-slate-200 hidden sm:flex"
               title="Profile Account"
               aria-label="Open user menu"
@@ -231,7 +217,7 @@ export default function Navbar({
 
         {/* Mobile Search Bar */}
         <div className="mobile-search lg:hidden mt-2">
-          <div className="flex items-center bg-slate-50 rounded-full border border-slate-200 px-3 py-1.5">
+          <form onSubmit={onSearchSubmit} className="flex items-center bg-slate-50 rounded-full border border-slate-200 px-3 py-1.5">
             <Search className="w-4 h-4 text-primary mr-2 stroke-[2.5]" />
             <input
               type="text"
@@ -240,7 +226,7 @@ export default function Navbar({
               placeholder="Search groceries, cakes, cosmetics, gifts..."
               className="w-full text-xs bg-transparent focus:outline-none text-slate-900"
             />
-          </div>
+          </form>
         </div>
       </div>
 
@@ -271,24 +257,18 @@ export default function Navbar({
                   </div>
                   <div className="max-h-96 overflow-y-auto py-1">
                     {categories.map(cat => (
-                      <button
+                      <Link
                         key={cat.id}
-                        onClick={() => {
-                           onSelectCategory(cat.slug);
-                           setShowCategoryDropdown(false);
-                           const el = document.getElementById('popular-products');
-                           if (el) el.scrollIntoView({ behavior: 'smooth' });
-                         }}
-                         className={`w-full px-4 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-emerald-50 hover:text-primary-dark transition ${
-                           selectedCategory === cat.slug ? 'bg-emerald-50 text-primary-dark font-bold border-l-4 border-primary' : 'text-slate-700'
-                         }`}
+                        to={`/category/${cat.slug}`}
+                        onClick={() => setShowCategoryDropdown(false)}
+                        className={`w-full px-4 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-emerald-50 hover:text-primary-dark transition text-slate-700`}
                       >
                         <span className="flex items-center gap-2.5">
                           <span className="text-base">{cat.icon}</span>
                           <span>{cat.name}</span>
                         </span>
                         <span className="text-[10px] text-slate-400">{cat.count}</span>
-                      </button>
+                      </Link>
                     ))}
                   </div>
                 </div>
@@ -299,14 +279,23 @@ export default function Navbar({
             <ul className="flex items-center gap-6">
               {navLinks.filter(l => !l.isDropdown).map((link, idx) => (
                 <li key={idx}>
-                  <button
-                    onClick={link.action}
-                    className="text-xs font-bold text-slate-700 hover:text-primary transition flex items-center gap-1 py-1 relative group"
-                  >
-                    <span>{link.label}</span>
-                    {/* Active neon green underline */}
-                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
-                  </button>
+                  {link.path ? (
+                    <Link
+                      to={link.path}
+                      className="text-xs font-bold text-slate-700 hover:text-primary transition flex items-center gap-1 py-1 relative group"
+                    >
+                      <span>{link.label}</span>
+                      <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={link.action}
+                      className="text-xs font-bold text-slate-700 hover:text-primary transition flex items-center gap-1 py-1 relative group"
+                    >
+                      <span>{link.label}</span>
+                      <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -346,17 +335,29 @@ export default function Navbar({
 
               <div className="space-y-1">
                 {navLinks.filter(l => !l.isDropdown).map((link, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      if (link.action) link.action();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full px-3 py-2.5 rounded-xl text-left text-xs font-bold text-slate-800 hover:bg-emerald-50 hover:text-primary-dark flex justify-between items-center"
-                  >
-                    <span>{link.label}</span>
-                    <span className="text-slate-300">→</span>
-                  </button>
+                  <React.Fragment key={idx}>
+                    {link.path ? (
+                      <Link
+                        to={link.path}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="w-full px-3 py-2.5 rounded-xl text-left text-xs font-bold text-slate-800 hover:bg-emerald-50 hover:text-primary-dark flex justify-between items-center"
+                      >
+                        <span>{link.label}</span>
+                        <span className="text-slate-300">→</span>
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          if (link.action) link.action();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="w-full px-3 py-2.5 rounded-xl text-left text-xs font-bold text-slate-800 hover:bg-emerald-50 hover:text-primary-dark flex justify-between items-center"
+                      >
+                        <span>{link.label}</span>
+                        <span className="text-slate-300">→</span>
+                      </button>
+                    )}
+                  </React.Fragment>
                 ))}
               </div>
             </div>
@@ -364,7 +365,11 @@ export default function Navbar({
             <div className="border-t border-slate-100 pt-4 mt-6">
               <button 
                 onClick={() => {
-                  onOpenAuth();
+                  if (currentUser) {
+                    navigate('/account');
+                  } else {
+                    onOpenAuth();
+                  }
                   setIsMobileMenuOpen(false);
                 }}
                 className="w-full btn-neon py-3 text-xs font-bold text-center"
