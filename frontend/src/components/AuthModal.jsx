@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User, Lock, Mail, Eye, EyeOff, ArrowRight, LogOut } from 'lucide-react';
+import { X, User, Lock, Mail, Eye, EyeOff, ArrowRight, LogOut, LayoutDashboard } from 'lucide-react';
 import * as api from '../services/api';
 
 export default function AuthModal({ isOpen, onClose, onTriggerToast, onLoginSuccess, currentUser, onLogout }) {
@@ -39,15 +39,33 @@ export default function AuthModal({ isOpen, onClose, onTriggerToast, onLoginSucc
           <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 text-xs space-y-1 text-slate-600">
             <div className="flex justify-between"><span className="font-bold">Email</span><span>{currentUser.email}</span></div>
             {currentUser.full_name && <div className="flex justify-between"><span className="font-bold">Name</span><span>{currentUser.full_name}</span></div>}
+            {currentUser.role === 'admin' && <div className="flex justify-between"><span className="font-bold">Role</span><span className="text-emerald-600 font-bold">Admin</span></div>}
+            {currentUser.loyalty_points !== undefined && (
+              <div className="flex justify-between">
+                <span className="font-bold">Loyalty Points</span>
+                <span className="text-orange-600 font-bold">{currentUser.loyalty_points}</span>
+              </div>
+            )}
           </div>
 
-          <button
-            onClick={() => { onLogout(); onClose(); }}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 font-bold text-sm hover:bg-rose-100 transition"
-          >
-            <LogOut className="w-4 h-4" />
-            Sign Out
-          </button>
+          <div className="space-y-2">
+            {currentUser.role === 'admin' && (
+              <button
+                onClick={() => { onClose(); window.location.href = '/admin'; }}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 font-bold text-sm hover:bg-emerald-100 transition"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                Admin Dashboard
+              </button>
+            )}
+            <button
+              onClick={() => { onLogout(); onClose(); }}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 font-bold text-sm hover:bg-rose-100 transition"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -82,6 +100,9 @@ export default function AuthModal({ isOpen, onClose, onTriggerToast, onLoginSucc
           onTriggerToast(`Welcome back to Alphonsa Hypermarket!`);
           onClose();
           resetForm();
+          if (res.data.role === 'admin') {
+            window.location.href = '/admin';
+          }
         }
       }
     } catch (err) {

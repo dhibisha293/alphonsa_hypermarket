@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Heart, ShoppingCart, Trash2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function WishlistDrawer({ 
   isOpen, 
@@ -8,11 +9,24 @@ export default function WishlistDrawer({
   onRemoveWishlist, 
   onAddToCart 
 }) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex justify-end">
-      <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between overflow-hidden animate-fade-in">
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+          />
+          <motion.div 
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between overflow-hidden relative z-10"
+          >
         
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-900 text-white flex items-center justify-between">
@@ -33,11 +47,18 @@ export default function WishlistDrawer({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {wishlist.length === 0 ? (
-            <div className="text-center py-16 text-slate-400 space-y-3">
-              <Heart className="w-16 h-16 mx-auto stroke-1 text-slate-300" />
-              <p className="font-bold text-slate-700 text-sm">Your wishlist is currently empty</p>
-              <p className="text-xs text-slate-400 max-w-xs mx-auto">Click the heart icon on any product to save it for later.</p>
-              <button onClick={onClose} className="btn-neon text-xs py-2 px-5 font-bold mt-2">
+            <div className="text-center py-20 px-6 space-y-4">
+              <motion.div 
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.1, type: "spring" }}
+                className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6"
+              >
+                <Heart className="w-10 h-10 text-slate-300" />
+              </motion.div>
+              <h3 className="font-heading font-extrabold text-xl text-slate-800">Your wishlist is currently empty</h3>
+              <p className="text-sm text-slate-500 pb-6">Click the heart icon on any product to save it for later.</p>
+              <button onClick={onClose} className="btn-neon w-full py-3.5 text-sm font-bold shadow-lg shadow-emerald-500/20">
                 Discover Products
               </button>
             </div>
@@ -74,7 +95,9 @@ export default function WishlistDrawer({
           )}
         </div>
 
-      </div>
-    </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }

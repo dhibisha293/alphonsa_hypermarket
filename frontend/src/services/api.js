@@ -5,10 +5,10 @@
  * The React UI never talks to Supabase directly.
  *
  * Environment variable:
- *   VITE_API_URL=http://localhost:8000   (set in frontend/.env)
+ *   VITE_API_URL=http://localhost:8080   (set in frontend/.env)
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 // ─── Auth token helpers ──────────────────────────────────────────────────────
 const TOKEN_KEY = "alphonsa_token";
@@ -30,7 +30,14 @@ async function request(path, options = {}) {
   const json = await res.json();
 
   if (!res.ok) {
-    const message = json?.detail || json?.message || "Something went wrong";
+    let message = "Something went wrong";
+    if (Array.isArray(json?.detail)) {
+      message = json.detail[0]?.msg || message;
+    } else if (json?.detail) {
+      message = typeof json.detail === 'string' ? json.detail : JSON.stringify(json.detail);
+    } else if (json?.message) {
+      message = json.message;
+    }
     throw new Error(message);
   }
   return json; // { success, data, message }
@@ -79,6 +86,8 @@ export const logout = () => {
   clearToken();
   return request("/api/auth/logout", { method: "POST" });
 };
+
+export const getMe = () => request("/api/auth/me");
 
 // ─── Cart ─────────────────────────────────────────────────────────────────────
 export const getCart = () => request("/api/cart");

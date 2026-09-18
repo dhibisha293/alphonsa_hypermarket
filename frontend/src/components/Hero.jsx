@@ -39,10 +39,10 @@ export default function Hero({ onShopNow, onExploreCategories }) {
   };
 
   return (
-    <section className="hero-stage py-8 md:py-12 bg-[#FFF8F5]">
+    <section className="hero-stage py-8 md:py-12 bg-light-green">
       <div className="container-custom">
         {/* Soft Green Gradient Container with Rounded Corners */}
-        <div className="hero-panel relative overflow-hidden border border-[#8E1B1B] rounded-3xl p-6 sm:p-10 md:p-14 shadow-sm">
+        <div className="hero-panel relative overflow-hidden border border-slate-200 rounded-[32px] p-6 sm:p-10 md:p-14 shadow-md bg-white">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
@@ -51,24 +51,24 @@ export default function Hero({ onShopNow, onExploreCategories }) {
               
               {/* Three Promotional Badges */}
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
-                <span className="badge-light-green flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-[#0B3D20] fill-[#39FF14]" />
+                <span className="badge-light-green flex items-center gap-1.5 bg-emerald-50 text-emerald-800 px-3 py-1 rounded-full text-[10px] font-bold border border-emerald-100">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-600" />
                   <span>WELCOME TO ALPHONSA HYPERMARKET</span>
                 </span>
-                <span className="badge-light-green flex items-center gap-1">
-                  <Truck className="w-3.5 h-3.5 text-[#0B3D20]" />
+                <span className="badge-light-green flex items-center gap-1.5 bg-emerald-50 text-emerald-800 px-3 py-1 rounded-full text-[10px] font-bold border border-emerald-100">
+                  <Truck className="w-3.5 h-3.5 text-emerald-600" />
                   <span>🚚 FREE DELIVERY UP TO 3 KM</span>
                 </span>
-                <span className="badge-light-green flex items-center gap-1">
-                  <Gift className="w-3.5 h-3.5 text-[#0B3D20]" />
+                <span className="badge-light-green flex items-center gap-1.5 bg-emerald-50 text-emerald-800 px-3 py-1 rounded-full text-[10px] font-bold border border-emerald-100">
+                  <Gift className="w-3.5 h-3.5 text-emerald-600" />
                   <span>🎁 CUSTOMIZED GIFTS AVAILABLE</span>
                 </span>
               </div>
 
               {/* Main Headline */}
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.15] text-[#111111]">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] text-slate-900 font-heading">
                 Everything Your Family Needs.{' '}
-                <span className="text-[#0B3D20] block sm:inline">
+                <span className="text-primary block sm:inline">
                   All Under One Roof.
                 </span>
               </h1>
@@ -82,7 +82,7 @@ export default function Hero({ onShopNow, onExploreCategories }) {
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2">
                 <button 
                   onClick={onShopNow}
-                  className="w-full sm:w-auto btn-neon text-sm py-3.5 px-8 font-bold flex items-center justify-center gap-2.5 shadow-md shadow-[#39FF14]/30"
+                  className="w-full sm:w-auto btn-neon text-sm py-3.5 px-8 font-bold flex items-center justify-center gap-2.5 shadow-lg shadow-primary/20 bg-primary hover:bg-primary-dark text-white rounded-full transition-all duration-300 hover:-translate-y-1"
                 >
                   <ShoppingBag className="w-4 h-4" />
                   <span>Shop Now</span>
@@ -98,18 +98,18 @@ export default function Hero({ onShopNow, onExploreCategories }) {
               </div>
 
               {/* Bullet Features */}
-              <div className="pt-6 border-t border-[#E5E7E5] grid grid-cols-3 gap-3 text-left max-w-lg mx-auto lg:mx-0">
+              <div className="pt-6 border-t border-slate-200 grid grid-cols-3 gap-3 text-left max-w-lg mx-auto lg:mx-0">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#0B3D20] shrink-0" />
-                  <span className="text-xs font-bold text-[#111111]">100% Organic Fresh</span>
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                  <span className="text-xs font-bold text-slate-800">100% Organic Fresh</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#0B3D20] shrink-0" />
-                  <span className="text-xs font-bold text-[#111111]">Daily Low Prices</span>
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                  <span className="text-xs font-bold text-slate-800">Daily Low Prices</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#0B3D20] shrink-0" />
-                  <span className="text-xs font-bold text-[#111111]">Express 3KM Delivery</span>
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                  <span className="text-xs font-bold text-slate-800">Express 3KM Delivery</span>
                 </div>
               </div>
 

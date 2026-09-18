@@ -28,3 +28,4 @@ class AuthResponse(BaseModel):
     user_id: str
     email: str
     full_name: Optional[str] = None
+    role: str = "customer"

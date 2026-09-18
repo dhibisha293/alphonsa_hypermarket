@@ -3,10 +3,10 @@ import { Truck, MapPin, Clock, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export default function FreeDeliveryBanner({ onOpenLocation }) {
   return (
-    <section className="py-8 bg-[#F5F7F5]">
+    <section className="py-8 bg-slate-50">
       <div className="container-custom">
         {/* Dark Green Container with Rounded Corners */}
-        <div className="bg-[#0B3D20] text-white rounded-3xl p-6 sm:p-10 relative overflow-hidden shadow-lg border border-[#0B3D20]">
+        <div className="bg-primary-dark text-white rounded-3xl p-6 sm:p-10 relative overflow-hidden shadow-lg border border-primary-dark">
           
           {/* Animated Dashed Road Line */}
           <div className="w-full h-1 animated-road-line mb-6 opacity-80"></div>
@@ -15,13 +15,13 @@ export default function FreeDeliveryBanner({ onOpenLocation }) {
             
             {/* Truck Icon & Typography */}
             <div className="lg:col-span-8 space-y-3 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#39FF14]/20 border border-[#39FF14]/40 text-[#39FF14] font-extrabold text-xs tracking-wider uppercase">
-                <Truck className="w-4 h-4 text-[#39FF14]" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/40 text-primary font-extrabold text-xs tracking-wider uppercase">
+                <Truck className="w-4 h-4 text-primary" />
                 <span>EXPRESS LOCAL DELIVERY</span>
               </div>
 
               <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black font-heading text-white leading-tight">
-                Free Delivery Up to 3 KM <span className="text-[#39FF14]">🚚</span>
+                Free Delivery Up to 3 KM <span className="text-primary">🚚</span>
               </h2>
 
               <p className="text-slate-200 text-xs sm:text-base font-medium leading-relaxed max-w-2xl">
@@ -30,10 +30,10 @@ export default function FreeDeliveryBanner({ onOpenLocation }) {
 
               <div className="flex flex-wrap gap-4 pt-1 justify-center lg:justify-start text-xs font-bold text-slate-200">
                 <span className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-[#39FF14]" /> 📍 Kattathurai & 3 KM Radius
+                  <MapPin className="w-4 h-4 text-primary" /> 📍 Kattathurai & 3 KM Radius
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-[#39FF14]" /> Express 45 Min Delivery
+                  <Clock className="w-4 h-4 text-primary" /> Express 45 Min Delivery
                 </span>
               </div>
             </div>
@@ -42,7 +42,7 @@ export default function FreeDeliveryBanner({ onOpenLocation }) {
             <div className="lg:col-span-4 flex justify-center lg:justify-end">
               <button 
                 onClick={onOpenLocation}
-                className="btn-neon text-sm py-3.5 px-8 font-bold flex items-center gap-2 shadow-md shadow-[#39FF14]/40"
+                className="btn-neon text-sm py-3.5 px-8 font-bold flex items-center gap-2 shadow-md shadow-primary/40"
               >
                 <Truck className="w-4 h-4" />
                 <span>Check Delivery Eligibility</span>

@@ -14,6 +14,8 @@ from app.routers import (
     orders,
     promo,
     contact,
+    admin,
+    admin_catalog,
 )
 
 app = FastAPI(
@@ -23,11 +25,23 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+# ─── SECURITY HEADERS ────────────────────────────────────────────────────────
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    if settings.APP_ENV != "development":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Content-Security-Policy"] = "default-src 'self'"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=()"
+    return response
 
-# ─── CORS ────────────────────────────────────────────────────────────────────
+# ─── CORS ────────────────────────────────────────────────────────────────────# Setup CORS for local network usage
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins_list,
+    allow_origins=["*"], # Allow all for intranet usage
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -45,3 +59,5 @@ app.include_router(wishlist.router,       prefix="/api")
 app.include_router(orders.router,         prefix="/api")
 app.include_router(promo.router,          prefix="/api")
 app.include_router(contact.router,        prefix="/api")
+app.include_router(admin.router,          prefix="/api")
+app.include_router(admin_catalog.router,  prefix="/api")

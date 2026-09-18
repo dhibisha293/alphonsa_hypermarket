@@ -3,6 +3,7 @@ from typing import Optional
 from app.database import supabase
 from app.schemas.products import ProductOut, ProductListResponse
 from app.utils.responses import ok, fail
+from app.utils.cache import simple_ttl_cache
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -13,7 +14,8 @@ SEARCHABLE_CATEGORIES = {
 
 
 @router.get("", summary="List products with optional filtering and search")
-async def list_products(
+@simple_ttl_cache(ttl_seconds=120)
+async def get_products(
     category: Optional[str] = Query(None, description="category slug or 'all'"),
     search: Optional[str]   = Query(None, description="search in name, description"),
     is_bestseller: Optional[bool] = Query(None),

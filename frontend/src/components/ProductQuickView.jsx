@@ -21,8 +21,10 @@ export default function ProductQuickView({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border border-slate-200 relative animate-fade-in max-h-[90vh] overflow-y-auto">
+      <div className="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border border-slate-200 relative animate-fade-in max-h-[90vh] flex flex-col">
         
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto">
         {/* Close Button */}
         <button 
           onClick={onClose}
@@ -48,7 +50,7 @@ export default function ProductQuickView({
           </div>
 
           {/* Product Details Column */}
-          <div className="p-6 flex flex-col justify-between">
+          <div className="p-6">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md">
                 {product.categoryLabel}
@@ -105,61 +107,60 @@ export default function ProductQuickView({
               </div>
             </div>
 
-            {/* Actions: Quantity Selector & Add to Cart */}
-            <div className="mt-6 pt-4 border-t border-slate-100 space-y-3">
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-slate-700">Quantity:</span>
-                <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-full px-3 py-1">
-                  <button 
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="text-slate-600 hover:text-slate-900 font-bold text-base"
-                  >
-                    -
-                  </button>
-                  <span className="text-xs font-extrabold text-slate-900 w-4 text-center">{quantity}</span>
-                  <button 
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="text-slate-600 hover:text-slate-900 font-bold text-base"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
+          </div>
+        </div>
+      </div>
 
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleAdd}
-                  className="flex-1 btn-neon py-3 text-xs font-bold flex items-center justify-center gap-2"
-                >
-                  {added ? (
-                    <>
-                      <Check className="w-4 h-4" />
-                      <span>Added to Cart</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className="w-4 h-4" />
-                      <span>Add to Cart • ₹{product.price * quantity}</span>
-                    </>
-                  )}
-                </button>
-
-                <button
-                  onClick={() => onToggleWishlist(product)}
-                  className={`p-3 rounded-full border border-slate-200 transition ${
-                    isWishlisted ? 'bg-rose-500 text-white border-rose-500' : 'bg-slate-100 text-slate-700 hover:bg-rose-50'
-                  }`}
-                  title="Wishlist"
-                >
-                  <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-white' : ''}`} />
-                </button>
-              </div>
+      {/* Sticky Actions Footer */}
+        <div className="p-4 sm:p-6 bg-white border-t border-slate-100 shrink-0 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <span className="text-xs font-bold text-slate-700">Qty:</span>
+            <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-full px-3 py-1">
+              <button 
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="text-slate-600 hover:text-slate-900 font-bold text-base"
+              >
+                -
+              </button>
+              <span className="text-xs font-extrabold text-slate-900 w-4 text-center">{quantity}</span>
+              <button 
+                onClick={() => setQuantity(quantity + 1)}
+                className="text-slate-600 hover:text-slate-900 font-bold text-base"
+              >
+                +
+              </button>
             </div>
-
           </div>
 
-        </div>
+          <div className="flex items-center gap-3 w-full sm:w-auto flex-1 sm:flex-none justify-end">
+            <button
+              onClick={handleAdd}
+              className="flex-1 sm:flex-none btn-neon py-2.5 px-6 text-xs font-bold flex items-center justify-center gap-2 min-w-[200px]"
+            >
+              {added ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>Added to Cart</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="w-4 h-4" />
+                  <span>Add to Cart • ₹{product.price * quantity}</span>
+                </>
+              )}
+            </button>
 
+            <button
+              onClick={() => onToggleWishlist(product)}
+              className={`p-2.5 rounded-full border border-slate-200 transition shrink-0 ${
+                isWishlisted ? 'bg-rose-500 text-white border-rose-500' : 'bg-slate-100 text-slate-700 hover:bg-rose-50'
+              }`}
+              title="Wishlist"
+            >
+              <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-white' : ''}`} />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

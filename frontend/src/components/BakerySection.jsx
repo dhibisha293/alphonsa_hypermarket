@@ -15,16 +15,16 @@ export default function BakerySection({ onAddToCart, onToggleWishlist, wishlist,
   }, []);
 
   return (
-    <section id="bakery-special" className="py-14 bg-gradient-to-b from-[#EFFFF0]/60 via-white to-white border-y border-[#E5E7E5]">
+    <section id="bakery-special" className="py-14 bg-gradient-to-b from-emerald-50/60 via-white to-white border-y border-slate-200">
       <div className="container-custom">
 
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div>
             <span className="badge-light-green inline-flex items-center gap-1 text-xs">
-              <Cake className="w-4 h-4 text-[#0B3D20]" />
+              <Cake className="w-4 h-4 text-primary-dark" />
               <span>ALPHONSA IN-HOUSE BAKERY</span>
             </span>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-[#0B3D20] font-heading mt-2">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-primary-dark font-heading mt-2">
               Fresh From Our Bakery 🍰
             </h2>
             <p className="text-slate-600 text-sm mt-1 max-w-xl font-medium">
@@ -37,16 +37,16 @@ export default function BakerySection({ onAddToCart, onToggleWishlist, wishlist,
               const el = document.getElementById('popular-products');
               if (el) el.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="btn-neon text-xs py-3 px-6 font-bold shrink-0 self-start text-[#111111]"
+            className="btn-neon text-xs py-3 px-6 font-bold shrink-0 self-start text-slate-900"
           >
             <span>Explore Bakery</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="mb-8 rounded-2xl bg-[#0B3D20] text-white p-6 md:p-8 relative shadow-md grid grid-cols-1 md:grid-cols-12 items-center gap-6">
+        <div className="mb-8 rounded-2xl bg-primary-dark text-white p-6 md:p-8 relative shadow-md grid grid-cols-1 md:grid-cols-12 items-center gap-6">
           <div className="md:col-span-8 space-y-3">
-            <span className="bg-[#39FF14] text-[#111111] font-extrabold text-[10px] px-2.5 py-1 rounded-full uppercase">
+            <span className="bg-primary text-slate-900 font-extrabold text-[10px] px-2.5 py-1 rounded-full uppercase">
               BAKERY SPECIAL
             </span>
             <h3 className="text-2xl sm:text-3xl font-extrabold font-heading text-white">
@@ -60,7 +60,7 @@ export default function BakerySection({ onAddToCart, onToggleWishlist, wishlist,
             <img
               src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=400&q=80"
               alt="Gourmet Cake Alphonsa Hypermarket"
-              className="w-48 h-48 object-cover rounded-xl border-2 border-[#39FF14] shadow-lg rotate-2 hover:rotate-0 transition duration-300"
+              className="w-48 h-48 object-cover rounded-xl border-2 border-primary shadow-lg rotate-2 hover:rotate-0 transition duration-300"
             />
           </div>
         </div>

@@ -17,11 +17,11 @@ export default function CustomizedGiftsSection({
       .catch(() => {});
   }, []);
   return (
-    <section id="customized-gifts-section" className="py-14 bg-[#F5F7F5]">
+    <section id="customized-gifts-section" className="py-14 bg-slate-50">
       <div className="container-custom">
         
         {/* Rounded Banner Container with Soft Green Gradient */}
-        <div className="bg-gradient-to-br from-[#EFFFF0] via-white to-[#EFFFF0] border border-[#E5E7E5] rounded-3xl p-6 sm:p-10 mb-10 shadow-sm relative overflow-hidden">
+        <div className="bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border border-slate-200 rounded-3xl p-6 sm:p-10 mb-10 shadow-sm relative overflow-hidden">
           
           {/* Floating Decorative Gifts */}
           <div className="absolute top-4 right-8 text-3xl animate-float opacity-30 pointer-events-none">🎁</div>
@@ -32,11 +32,11 @@ export default function CustomizedGiftsSection({
             {/* Split Screen Left: Text & Badges */}
             <div className="lg:col-span-7 space-y-4 text-center lg:text-left">
               <span className="badge-light-green inline-flex items-center gap-1.5 text-xs">
-                <Gift className="w-4 h-4 text-[#0B3D20]" />
+                <Gift className="w-4 h-4 text-primary-dark" />
                 <span>🎁 CUSTOMIZED GIFTS AVAILABLE</span>
               </span>
 
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0B3D20] font-heading leading-tight">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-primary-dark font-heading leading-tight">
                 Make Every Gift Special 🎁
               </h2>
 
@@ -44,10 +44,10 @@ export default function CustomizedGiftsSection({
                 Looking for a special gift? We offer customized gifts for birthdays, anniversaries, celebrations and special occasions — right here at Alphonsa Hypermarket, Kattathurai.
               </p>
 
-              <div className="flex flex-wrap gap-2 pt-1 justify-center lg:justify-start text-xs font-bold text-[#0B3D20]">
-                <span className="bg-white px-3 py-1.5 rounded-full border border-[#E5E7E5] shadow-xs">✨ Custom Name Embroidery</span>
-                <span className="bg-white px-3 py-1.5 rounded-full border border-[#E5E7E5] shadow-xs">📸 High Res Photo Mugs</span>
-                <span className="bg-white px-3 py-1.5 rounded-full border border-[#E5E7E5] shadow-xs">🎀 Celebration Hampers</span>
+              <div className="flex flex-wrap gap-2 pt-1 justify-center lg:justify-start text-xs font-bold text-primary-dark">
+                <span className="bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-xs">✨ Custom Name Embroidery</span>
+                <span className="bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-xs">📸 High Res Photo Mugs</span>
+                <span className="bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-xs">🎀 Celebration Hampers</span>
               </div>
 
               <div className="pt-2">
@@ -56,7 +56,7 @@ export default function CustomizedGiftsSection({
                     const el = document.getElementById('gift-products-grid');
                     if (el) el.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className="btn-neon text-sm py-3 px-7 font-bold flex items-center justify-center gap-2 shadow-md shadow-[#39FF14]/30 mx-auto lg:mx-0"
+                  className="btn-neon text-sm py-3 px-7 font-bold flex items-center justify-center gap-2 shadow-md shadow-primary/30 mx-auto lg:mx-0"
                 >
                   <Gift className="w-4 h-4" />
                   <span>Explore Customized Gifts</span>
@@ -67,16 +67,16 @@ export default function CustomizedGiftsSection({
 
             {/* Split Screen Right: Gift Showcase Image */}
             <div className="lg:col-span-5 relative flex justify-center">
-              <div className="relative w-full max-w-sm aspect-[4/3] rounded-2xl overflow-hidden border border-[#E5E7E5] shadow-lg group">
+              <div className="relative w-full max-w-sm aspect-[4/3] rounded-2xl overflow-hidden border border-slate-200 shadow-lg group">
                 <img 
                   src="https://images.unsplash.com/photo-1513885535751-8b9238bd345a?auto=format&fit=crop&w=600&q=80" 
                   alt="Customized Gifts Alphonsa Hypermarket" 
                   className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0B3D20]/80 via-transparent to-transparent"></div>
-                <div className="absolute bottom-3 left-3 right-3 p-3 bg-white/95 rounded-xl border border-[#E5E7E5] flex justify-between items-center text-xs font-bold text-[#0B3D20]">
+                <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/80 via-transparent to-transparent"></div>
+                <div className="absolute bottom-3 left-3 right-3 p-3 bg-white/95 rounded-xl border border-slate-200 flex justify-between items-center text-xs font-bold text-primary-dark">
                   <span>Personalized Birthday & Anniversary Gifts</span>
-                  <span className="bg-[#39FF14] text-[#111111] text-[10px] px-2 py-0.5 rounded-full">Kattathurai</span>
+                  <span className="bg-primary text-slate-900 text-[10px] px-2 py-0.5 rounded-full">Kattathurai</span>
                 </div>
               </div>
             </div>
@@ -88,7 +88,7 @@ export default function CustomizedGiftsSection({
         {/* Customized Gift Products Grid */}
         <div id="gift-products-grid" className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-extrabold text-[#0B3D20] font-heading">
+            <h3 className="text-xl font-extrabold text-primary-dark font-heading">
               Popular Customized Gifts
             </h3>
             <span className="text-xs font-bold text-slate-500">Handcrafted with Love</span>

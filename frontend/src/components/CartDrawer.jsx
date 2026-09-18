@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldCheck, Tag, Sparkles, CheckCircle2 } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldCheck, Tag, Sparkles, CheckCircle2, ShoppingCart } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import * as api from '../services/api';
 
 export default function CartDrawer({ 
@@ -18,14 +19,14 @@ export default function CartDrawer({
   const [appliedCode, setAppliedCode] = useState('');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
-
-  if (!isOpen) return null;
+  const [placedOrderNumber, setPlacedOrderNumber] = useState('');
+  const [pointsRedeemed, setPointsRedeemed] = useState(0);
 
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const freeShippingThreshold = 499;
   const shippingFee = subtotal >= freeShippingThreshold || cartItems.length === 0 ? 0 : 40;
   const discountAmount = Math.round((subtotal * discount) / 100);
-  const total = Math.max(0, subtotal - discountAmount + shippingFee);
+  const total = Math.max(0, subtotal - discountAmount - pointsRedeemed + shippingFee);
 
   const handleApplyPromo = async () => {
     if (!promoCode.trim()) return;
@@ -42,9 +43,6 @@ export default function CartDrawer({
       if (triggerToast) triggerToast('Could not validate code. Try again.');
     }
   };
-
-  const [placedOrderNumber, setPlacedOrderNumber] = useState('');
-
   const handleCheckout = async () => {
     if (!currentUser) {
       if (triggerToast) triggerToast('Please sign in to place an order');
@@ -55,17 +53,10 @@ export default function CartDrawer({
       const orderPayload = {
         items: cartItems.map(item => ({
           product_id: item.product_id || item.id,
-          product_name: item.name,
-          product_image: item.image,
-          unit_price: item.price,
-          quantity: item.quantity,
-          line_total: item.price * item.quantity,
+          quantity: item.quantity
         })),
-        subtotal,
-        discount_amount: discountAmount,
-        shipping_fee: shippingFee,
-        total,
         promo_code: appliedCode || null,
+        points_redeemed: pointsRedeemed || 0,
       };
       const res = await api.placeOrder(orderPayload);
       if (res.success) {
@@ -81,8 +72,23 @@ export default function CartDrawer({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex justify-end">
-      <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between overflow-hidden animate-fade-in">
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+          />
+          <motion.div 
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between overflow-hidden relative z-10"
+          >
         
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-900 text-white flex items-center justify-between">
@@ -154,12 +160,19 @@ export default function CartDrawer({
             {/* Cart Items List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {cartItems.length === 0 ? (
-                <div className="text-center py-16 text-slate-400 space-y-3">
-                  <ShoppingBag className="w-16 h-16 mx-auto stroke-1 text-slate-300" />
-                  <p className="font-bold text-slate-700 text-sm">Your shopping cart is empty</p>
-                  <p className="text-xs text-slate-400 max-w-xs mx-auto">Explore groceries, cakes, cosmetics and toys to add products to your cart.</p>
-                  <button onClick={onClose} className="btn-neon text-xs py-2 px-5 font-bold mt-2">
-                    Browse Supermarket
+                <div className="text-center py-20 px-6 space-y-4">
+                  <motion.div 
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.1, type: "spring" }}
+                    className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6"
+                  >
+                    <ShoppingCart className="w-10 h-10 text-slate-300" />
+                  </motion.div>
+                  <h3 className="font-heading font-extrabold text-xl text-slate-800">Your cart is feeling a bit light!</h3>
+                  <p className="text-sm text-slate-500 pb-6">Explore our fresh groceries, delicious cakes, and exclusive customized gifts to fill it up.</p>
+                  <button onClick={onClose} className="btn-neon w-full py-3.5 text-sm font-bold shadow-lg shadow-emerald-500/20">
+                    Start Shopping
                   </button>
                 </div>
               ) : (
@@ -232,6 +245,42 @@ export default function CartDrawer({
                   </div>
                 )}
 
+                {/* Loyalty Points Redeem */}
+                {currentUser && currentUser.loyalty_points > 0 && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-orange-700">
+                      <Sparkles className="w-4 h-4" />
+                      <span className="text-xs font-bold">You have {currentUser.loyalty_points} points</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="number" 
+                        min="0"
+                        max={Math.min(currentUser.loyalty_points, subtotal - discountAmount)}
+                        value={pointsRedeemed}
+                        onChange={(e) => setPointsRedeemed(Math.max(0, Math.min(Number(e.target.value) || 0, currentUser.loyalty_points, subtotal - discountAmount)))}
+                        className="w-16 text-xs py-1 px-2 border border-orange-200 rounded-md text-center focus:outline-none focus:border-orange-500"
+                        placeholder="0"
+                      />
+                      <button 
+                        onClick={() => {
+                          // Simple max out
+                          setPointsRedeemed(Math.min(currentUser.loyalty_points, subtotal - discountAmount));
+                        }}
+                        className="text-[10px] bg-orange-100 hover:bg-orange-200 text-orange-800 px-2 py-1 rounded font-bold transition-colors"
+                      >
+                        MAX
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {pointsRedeemed > 0 && (
+                  <div className="text-[11px] text-orange-700 font-bold px-1 flex justify-between">
+                    <span>Points Redeemed ({pointsRedeemed})</span>
+                    <span>-₹{pointsRedeemed}</span>
+                  </div>
+                )}
+
                 {/* Subtotal Calculations */}
                 <div className="space-y-1 text-xs text-slate-600 font-medium pt-1">
                   <div className="flex justify-between">
@@ -239,9 +288,15 @@ export default function CartDrawer({
                     <span>₹{subtotal}</span>
                   </div>
                   {discount > 0 && (
-                    <div className="flex justify-between text-emerald-600">
+                     <div className="flex justify-between text-emerald-600">
                       <span>Promo Discount</span>
                       <span>-₹{discountAmount}</span>
+                    </div>
+                  )}
+                  {pointsRedeemed > 0 && (
+                    <div className="flex justify-between text-orange-600">
+                      <span>Loyalty Discount</span>
+                      <span>-₹{pointsRedeemed}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
@@ -274,7 +329,9 @@ export default function CartDrawer({
           </>
         )}
 
-      </div>
-    </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }

@@ -18,23 +18,23 @@ export default function ProductCard({
   };
 
   return (
-    <div className="product-card group bg-white border border-[#E5E7E5] rounded-[18px] overflow-hidden transition-all duration-300 flex flex-col justify-between hover:-translate-y-[7px] hover:shadow-xl hover:border-[#39FF14]">
+    <div className="product-card group bg-white border border-slate-200 rounded-2xl overflow-hidden transition-all duration-300 flex flex-col justify-between hover:-translate-y-1 hover:shadow-xl hover:border-primary">
       
       {/* Product Image Area */}
       <div 
-        className="product-img-container aspect-square bg-[#F5F7F5] relative overflow-hidden cursor-pointer"
+        className="product-img-container aspect-square bg-slate-50 relative overflow-hidden cursor-pointer"
         onClick={() => onQuickView(product)}
       >
         {/* Discount Badge */}
         {product.discount > 0 && (
-          <span className="absolute top-2.5 left-2.5 z-10 bg-[#39FF14] text-[#111111] font-extrabold text-[10px] px-2.5 py-0.5 rounded-full shadow-sm">
+          <span className="absolute top-2.5 left-2.5 z-10 bg-bright-red text-white font-extrabold text-[10px] px-2.5 py-0.5 rounded-full shadow-sm max-w-[calc(100%-45px)] truncate inline-block">
             {product.discount}% OFF
           </span>
         )}
 
         {/* Bestseller Badge */}
         {product.isBestseller && (
-          <span className="absolute top-2.5 left-2.5 z-10 bg-[#0B3D20] text-white font-bold text-[9px] px-2.5 py-0.5 rounded-full uppercase">
+          <span className="absolute top-2.5 left-2.5 z-10 bg-yellow text-slate-900 font-bold text-[9px] px-2.5 py-0.5 rounded-full uppercase max-w-[calc(100%-45px)] truncate inline-block">
             BESTSELLER
           </span>
         )}
@@ -51,6 +51,7 @@ export default function ProductCard({
               : 'bg-white/80 text-slate-600 hover:bg-rose-500 hover:text-white'
           }`}
           title="Wishlist"
+          aria-label={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
         >
           <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-white' : ''}`} />
         </button>
@@ -61,7 +62,8 @@ export default function ProductCard({
             e.stopPropagation();
             onQuickView(product);
           }}
-          className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-10 bg-white/90 text-[#111111] hover:bg-[#0B3D20] hover:text-white font-bold text-[11px] px-3 py-1 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-1"
+          className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-10 bg-white/95 text-slate-800 hover:bg-primary hover:text-white font-bold text-[11px] px-4 py-1.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-1 backdrop-blur-sm"
+          aria-label={`Quick view ${product.name}`}
         >
           <Eye className="w-3 h-3" />
           <span>Quick View</span>
@@ -80,7 +82,7 @@ export default function ProductCard({
       <div className="p-3.5 flex flex-col justify-between flex-grow">
         <div>
           <div className="flex items-center justify-between text-[10px] font-semibold text-slate-400 mb-1">
-            <span className="uppercase text-[#0B3D20] font-extrabold bg-[#EFFFF0] px-2 py-0.5 rounded">
+            <span className="uppercase text-primary font-extrabold bg-light-green px-2 py-0.5 rounded">
               {product.categoryLabel}
             </span>
             <span>{product.unit}</span>
@@ -88,7 +90,7 @@ export default function ProductCard({
 
           <h3 
             onClick={() => onQuickView(product)}
-            className="font-bold text-[#111111] text-xs hover:text-[#0B3D20] transition cursor-pointer line-clamp-2 min-h-[36px] leading-snug"
+            className="font-bold text-slate-900 text-sm hover:text-primary transition cursor-pointer line-clamp-2 min-h-[38px] leading-snug font-heading"
           >
             {product.name}
           </h3>
@@ -108,10 +110,10 @@ export default function ProductCard({
         </div>
 
         {/* Price & Add to Cart */}
-        <div className="pt-3 mt-3 border-t border-[#E5E7E5] flex items-center justify-between">
+        <div className="pt-3 mt-3 border-t border-slate-200 flex items-center justify-between">
           <div>
             <div className="flex items-baseline gap-1">
-              <span className="font-extrabold text-base text-[#111111]">
+              <span className="font-extrabold text-base text-slate-900 font-heading">
                 ₹{product.price}
               </span>
               {product.originalPrice > product.price && (
@@ -124,9 +126,10 @@ export default function ProductCard({
 
           <button
             onClick={handleAdd}
-            className={`btn-add-cart text-xs py-1.5 px-3 rounded-full font-bold transition flex items-center gap-1 ${
-              added ? 'bg-[#0B3D20] text-white' : 'bg-[#39FF14] text-[#111111] hover:bg-[#0B3D20] hover:text-white'
+            className={`btn-add-cart text-xs py-1.5 px-4 rounded-full font-bold transition flex items-center gap-1.5 ${
+              added ? 'bg-primary-dark text-white' : 'bg-primary text-white hover:bg-primary-dark shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30'
             }`}
+            aria-label={`Add ${product.name} to cart`}
           >
             {added ? (
               <>

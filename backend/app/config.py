@@ -9,10 +9,15 @@ class Settings(BaseSettings):
 
     APP_ENV: str = "development"
     SECRET_KEY: str = "change-me"
-    ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
+    ALLOWED_ORIGINS: str = ""
+    
+    AUTH_RATE_LIMIT_MAX: int = 5
+    AUTH_RATE_LIMIT_WINDOW_SECONDS: int = 60
 
     @property
     def allowed_origins_list(self) -> List[str]:
+        if not self.ALLOWED_ORIGINS.strip():
+            return []
         return [o.strip() for o in self.ALLOWED_ORIGINS.split(",")]
 
     class Config:

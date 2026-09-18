@@ -16,7 +16,7 @@ FastAPI REST API for Alphonsa Hypermarket, Kattathurai.
 ```
 React Frontend (port 5173)
         ↓  HTTP requests (fetch)
-FastAPI REST API (port 8000)
+FastAPI REST API (port 8080)
         ↓  Supabase Python Client
 Supabase PostgreSQL (cloud)
 ```
@@ -49,13 +49,13 @@ pip install -r requirements.txt
 
 ### 4. Start the server
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 ```
 
 ### 5. Test
-- Swagger UI: http://localhost:8000/docs
-- ReDoc:       http://localhost:8000/redoc
-- Health:      http://localhost:8000/api/health
+- Swagger UI: http://localhost:8080/docs
+- ReDoc:       http://localhost:8080/redoc
+- Health:      http://localhost:8080/api/health
 
 ---
 

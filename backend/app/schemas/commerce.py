@@ -81,20 +81,13 @@ class WishlistItemOut(BaseModel):
 
 class OrderItemIn(BaseModel):
     product_id: str
-    product_name: str
-    product_image: Optional[str] = None
-    unit_price: float
     quantity: int
-    line_total: float
 
 
 class PlaceOrderRequest(BaseModel):
     items: List[OrderItemIn]
-    subtotal: float
-    discount_amount: float = 0
-    shipping_fee: float = 0
-    total: float
     promo_code: Optional[str] = None
+    points_redeemed: Optional[int] = 0
     delivery_address: Optional[str] = None
     notes: Optional[str] = None
 

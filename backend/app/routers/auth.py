@@ -1,13 +1,34 @@
-from fastapi import APIRouter, HTTPException
+import time
+from collections import defaultdict
+from fastapi import APIRouter, HTTPException, Request, Depends
 from app.database import supabase_anon, supabase
 from app.schemas.auth import RegisterRequest, LoginRequest, AuthResponse
 from app.utils.responses import ok, fail
+from app.middleware.auth import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
+from app.config import settings
+
+# Simple in-memory rate limiter
+# Deployment Note: This state is process-local. For horizontal scaling (multiple workers/containers),
+# this should be replaced with a distributed store like Redis.
+RATE_LIMIT_STORE = defaultdict(list)
+
+def check_rate_limit(request: Request):
+    ip = request.client.host if request.client else "unknown"
+    now = time.time()
+    
+    # Clean up old timestamps
+    RATE_LIMIT_STORE[ip] = [t for t in RATE_LIMIT_STORE[ip] if now - t < settings.AUTH_RATE_LIMIT_WINDOW_SECONDS]
+    
+    if len(RATE_LIMIT_STORE[ip]) >= settings.AUTH_RATE_LIMIT_MAX:
+        raise HTTPException(status_code=429, detail="Too many attempts. Please try again later.")
+        
+    RATE_LIMIT_STORE[ip].append(now)
 
 @router.post("/register", summary="Register a new user account")
-async def register(body: RegisterRequest):
+async def register(body: RegisterRequest, _: None = Depends(check_rate_limit)):
     try:
         response = supabase_anon.auth.sign_up({
             "email": body.email,
@@ -17,7 +38,8 @@ async def register(body: RegisterRequest):
             }
         })
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        # Sanitize error to prevent leaking sensitive details
+        raise HTTPException(status_code=400, detail="Registration failed. Please check your details.")
 
     if response.user is None:
         raise HTTPException(status_code=400, detail="Registration failed. Please check your details.")
@@ -39,13 +61,14 @@ async def register(body: RegisterRequest):
 
 
 @router.post("/login", summary="Sign in with email and password")
-async def login(body: LoginRequest):
+async def login(body: LoginRequest, _: None = Depends(check_rate_limit)):
     try:
         response = supabase_anon.auth.sign_in_with_password({
             "email": body.email,
             "password": body.password
         })
     except Exception as e:
+        # Sanitize error to prevent leaking sensitive details
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     if response.user is None or response.session is None:
@@ -54,6 +77,17 @@ async def login(body: LoginRequest):
     user = response.user
     full_name = (user.user_metadata or {}).get("full_name")
 
+    # Fetch role and points from profiles table
+    role = "customer"
+    loyalty_points = 0
+    try:
+        profile_res = supabase.table("profiles").select("role, loyalty_points").eq("id", user.id).single().execute()
+        if profile_res.data:
+            role = profile_res.data.get("role", "customer")
+            loyalty_points = profile_res.data.get("loyalty_points", 0)
+    except Exception as e:
+        pass # fallback
+
     return ok(
         data={
             "access_token": response.session.access_token,
@@ -61,6 +95,8 @@ async def login(body: LoginRequest):
             "user_id": str(user.id),
             "email": user.email,
             "full_name": full_name,
+            "role": role,
+            "loyalty_points": loyalty_points,
         },
         message="Welcome back to Alphonsa Hypermarket!"
     )
@@ -73,10 +109,27 @@ async def logout():
 
 
 @router.get("/me", summary="Get current authenticated user info")
-async def get_me():
+async def get_me(user=Depends(get_current_user)):
     """
-    This endpoint is intentionally lightweight.
-    The React frontend validates its token via this route on startup.
-    Actual user data is carried in the JWT itself.
+    Returns the current user profile, including loyalty points.
     """
-    return ok(message="Use the Authorization header with a valid Supabase JWT")
+    full_name = (user.user_metadata or {}).get("full_name", "")
+    
+    # Fetch role and points from profiles table
+    role = "customer"
+    loyalty_points = 0
+    try:
+        profile_res = supabase.table("profiles").select("role, loyalty_points").eq("id", user.id).single().execute()
+        if profile_res.data:
+            role = profile_res.data.get("role", "customer")
+            loyalty_points = profile_res.data.get("loyalty_points", 0)
+    except Exception as e:
+        pass # fallback
+        
+    return ok(data={
+        "user_id": str(user.id),
+        "email": user.email,
+        "full_name": full_name,
+        "role": role,
+        "loyalty_points": loyalty_points,
+    })
